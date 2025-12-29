@@ -49,7 +49,7 @@ object AuthModule {
             validateUsername = ValidateUsername(),
             validatePassword = ValidatePassword(),
             validatePhoneNumber = ValidatePhoneNumber(),
-            login = LoginUseCase(repository, ValidateEmail(), ValidatePassword()),
+            login = LoginUseCase(repository, ValidatePassword()),
             register = RegisterUseCase(repository, ValidateEmail(), ValidateUsername(), ValidatePassword(), ValidatePhoneNumber()),
             getMe = GetMeUseCase(repository),
             checkEmailAvailable = CheckEmailAvailableUseCase(repository),

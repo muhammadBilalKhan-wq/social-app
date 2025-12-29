@@ -43,29 +43,41 @@ def register_view(request):
 
 @api_view(['POST'])
 def login_view(request):
-    serializer = LoginSerializer(data=request.data)
-    if serializer.is_valid():
-        email = serializer.validated_data['email'].strip()
-        password = serializer.validated_data['password'].strip()
-        try:
-            user_obj = User.objects.get(email__iexact=email)
-        except User.DoesNotExist:
-            return Response({
-                "success": False,
-                "error": "Account does not exist"
-            }, status=status.HTTP_404_NOT_FOUND)
-        if not user_obj.is_active:
-            return Response({
-                "success": False,
-                "error": "Account is deactivated"
-            }, status=status.HTTP_401_UNAUTHORIZED)
-        if user_obj.check_password(password):
-            user = user_obj
+    # Accept either email or phone
+    identifier = request.data.get('email') or request.data.get('phone')
+    password = request.data.get('password')
+
+    if not identifier or not password:
+        return Response({
+            "success": False,
+            "error": "Email/Phone and password are required"
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    identifier = identifier.strip()
+    password = password.strip()
+
+    # Try to find user by email or phone
+    try:
+        # Check if identifier looks like an email
+        if '@' in identifier:
+            user_obj = User.objects.get(email__iexact=identifier)
         else:
-            return Response({
-                "success": False,
-                "error": "Incorrect password"
-            }, status=status.HTTP_401_UNAUTHORIZED)
+            # Assume it's a phone number
+            user_obj = User.objects.get(phone=identifier)
+    except User.DoesNotExist:
+        return Response({
+            "success": False,
+            "error": "Account does not exist"
+        }, status=status.HTTP_404_NOT_FOUND)
+
+    if not user_obj.is_active:
+        return Response({
+            "success": False,
+            "error": "Account is deactivated"
+        }, status=status.HTTP_401_UNAUTHORIZED)
+
+    if user_obj.check_password(password):
+        user = user_obj
         refresh = RefreshToken.for_user(user)
         return Response({
             "success": True,
@@ -73,15 +85,11 @@ def login_view(request):
             "access": str(refresh.access_token),
             "refresh": str(refresh)
         }, status=status.HTTP_200_OK)
-    if 'email' in serializer.errors:
+    else:
         return Response({
             "success": False,
-            "error": "Invalid email format"
-        }, status=status.HTTP_400_BAD_REQUEST)
-    return Response({
-        "success": False,
-        "error": str(serializer.errors)
-    }, status=status.HTTP_400_BAD_REQUEST)
+            "error": "Incorrect password"
+        }, status=status.HTTP_401_UNAUTHORIZED)
 
 
 @api_view(['GET'])

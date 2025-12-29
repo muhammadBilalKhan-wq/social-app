@@ -31,8 +31,17 @@ class LoginViewModel @Inject constructor(
             is LoginEvent.EnteredEmail -> {
                 _uiState.update { it.copy(email = event.value, emailError = null) }
             }
+            is LoginEvent.EnteredPhoneNumber -> {
+                _uiState.update { it.copy(phoneNumber = event.value, phoneNumberError = null) }
+            }
             is LoginEvent.EnteredPassword -> {
                 _uiState.update { it.copy(password = event.value, passwordError = null) }
+            }
+            is LoginEvent.SelectedOption -> {
+                _uiState.update { it.copy(selectedOption = event.option, emailError = null, phoneNumberError = null) }
+            }
+            is LoginEvent.SelectedCountry -> {
+                _uiState.update { it.copy(countryCode = event.code, countryIsoCode = event.isoCode) }
             }
             is LoginEvent.Login -> {
                 login()
@@ -42,19 +51,52 @@ class LoginViewModel @Inject constructor(
 
     private fun login() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, emailError = null, passwordError = null) }
-            val loginResult = authUseCases.login(
-                email = uiState.value.email,
-                password = uiState.value.password
-            )
+            _uiState.update { it.copy(isLoading = true, emailError = null, phoneNumberError = null, passwordError = null) }
+            val currentState = uiState.value
+
+            // Validate input based on selected option
+            val validationError = when (currentState.selectedOption) {
+                "Email" -> {
+                    val emailError = authUseCases.validateEmail(currentState.email)
+                    if (emailError != null) {
+                        _uiState.update { it.copy(emailError = emailError, isLoading = false) }
+                        return@launch
+                    }
+                    null
+                }
+                "Phone" -> {
+                    val phoneError = authUseCases.validatePhoneNumber(
+                        currentState.phoneNumber,
+                        currentState.countryIsoCode
+                    )
+                    if (phoneError != null) {
+                        _uiState.update { it.copy(phoneNumberError = phoneError, isLoading = false) }
+                        return@launch
+                    }
+                    null
+                }
+                else -> null
+            }
+
+            if (validationError != null) return@launch
+
+            val identifier = when (currentState.selectedOption) {
+                "Email" -> currentState.email
+                "Phone" -> currentState.phoneNumber
+                else -> currentState.email
+            }
+
+            val loginResult = authUseCases.login(identifier = identifier, password = currentState.password)
+
             _uiState.update { it.copy(
                 emailError = loginResult.emailError,
+                phoneNumberError = loginResult.phoneNumberError,
                 passwordError = loginResult.passwordError,
                 isLoading = false
             ) }
             when(loginResult.result) {
                 is Resource.Success -> {
-                    _uiState.update { it.copy(emailError = null, passwordError = null) }
+                    _uiState.update { it.copy(emailError = null, phoneNumberError = null, passwordError = null) }
                     _eventFlow.emit(UiEvent.OnLogin)
                 }
                 is Resource.Error -> {

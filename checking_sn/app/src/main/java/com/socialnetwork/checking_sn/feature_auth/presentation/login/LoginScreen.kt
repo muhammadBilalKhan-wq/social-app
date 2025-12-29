@@ -24,7 +24,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.socialnetwork.checking_sn.core.presentation.components.PasswordInputField
 import com.socialnetwork.checking_sn.core.presentation.components.PrimaryButton
+import com.socialnetwork.checking_sn.core.presentation.components.SegmentedToggle
 import com.socialnetwork.checking_sn.core.presentation.components.TextInputField
+import com.socialnetwork.checking_sn.core.presentation.components.CountryCodeSelector
 import com.socialnetwork.checking_sn.ui.components.TopBar
 import com.socialnetwork.checking_sn.core.presentation.util.AUTH_GRAPH_ROUTE
 import com.socialnetwork.checking_sn.core.presentation.util.FEED_GRAPH_ROUTE
@@ -126,18 +128,55 @@ fun LoginScreen(
                     style = MaterialTheme.typography.displayMedium,
                     textAlign = TextAlign.Center,
                     color = Color.Black,
-                    modifier = Modifier.padding(bottom = Spacing.XXLarge)
+                    modifier = Modifier.padding(bottom = Spacing.Large)
                 )
 
-                // Email field
-                TextInputField(
-                    value = uiState.email,
-                    onValueChange = { viewModel.onEvent(LoginEvent.EnteredEmail(it)) },
-                    label = "Email or Phone Number",
-                    placeholder = "Enter your email or phone",
-                    error = uiState.emailError,
-                    keyboardType = KeyboardType.Email
+                // Segmented Control
+                SegmentedToggle(
+                    selectedOption = uiState.selectedOption,
+                    options = listOf("Email", "Phone"),
+                    onOptionSelected = { viewModel.onEvent(LoginEvent.SelectedOption(it)) },
+                    modifier = Modifier.padding(bottom = Spacing.ExtraLarge)
                 )
+
+                // Input Field
+                val currentError = when (uiState.selectedOption) {
+                    "Email" -> uiState.emailError
+                    "Phone" -> uiState.phoneNumberError
+                    else -> uiState.emailError
+                }
+
+                when (uiState.selectedOption) {
+                    "Email" -> {
+                        TextInputField(
+                            value = uiState.email,
+                            onValueChange = { viewModel.onEvent(LoginEvent.EnteredEmail(it)) },
+                            label = "Email",
+                            placeholder = "Enter your email",
+                            error = currentError,
+                            keyboardType = KeyboardType.Email
+                        )
+                    }
+                    "Phone" -> {
+                        Column {
+                            CountryCodeSelector(
+                                selectedCountryCode = uiState.countryCode,
+                                selectedCountryIsoCode = uiState.countryIsoCode,
+                                onCountrySelected = { code, iso ->
+                                    viewModel.onEvent(LoginEvent.SelectedCountry(code, iso))
+                                }
+                            )
+                            TextInputField(
+                                value = uiState.phoneNumber,
+                                onValueChange = { viewModel.onEvent(LoginEvent.EnteredPhoneNumber(it)) },
+                                label = "Phone Number",
+                                placeholder = "Enter your phone number",
+                                error = currentError,
+                                keyboardType = KeyboardType.Phone
+                            )
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(Spacing.Medium))
 

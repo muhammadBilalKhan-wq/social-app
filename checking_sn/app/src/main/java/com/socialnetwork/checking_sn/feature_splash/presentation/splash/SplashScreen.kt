@@ -1,5 +1,6 @@
 package com.socialnetwork.checking_sn.feature_splash.presentation.splash
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -10,13 +11,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -34,13 +38,33 @@ fun SplashScreen(
     val pagerState = rememberPagerState(pageCount = { 3 })
     val currentPage by remember { derivedStateOf { pagerState.currentPage } }
 
+    // Logo animation
+    val logoScale = remember { Animatable(0f) }
+    val logoAlpha = remember { Animatable(0f) }
+
+    LaunchedEffect(Unit) {
+        // Start both animations simultaneously
+        logoAlpha.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 1000, easing = EaseOutCubic)
+        )
+        logoScale.animateTo(
+            targetValue = 1f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
 
-        // Carousel with images
+        // Carousel with images - COMMENTED OUT
+        /*
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -96,6 +120,7 @@ fun SplashScreen(
                 }
             }
         }
+        */
 
         // Logo at top center (drawn after carousel so it's on top)
         Image(
@@ -105,6 +130,11 @@ fun SplashScreen(
                 .size(250.dp)
                 .align(Alignment.TopCenter)
                 .padding(top = 65.dp)
+                .graphicsLayer(
+                    scaleX = logoScale.value,
+                    scaleY = logoScale.value,
+                    alpha = logoAlpha.value
+                )
         )
 
         // Buttons at bottom center

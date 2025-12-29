@@ -18,9 +18,17 @@ class AuthRepositoryImpl(
     private val authApi: AuthApi
 ) : AuthRepository {
 
-    override suspend fun login(email: String, password: String): AuthResult {
+    override suspend fun login(identifier: String, password: String): AuthResult {
         return try {
-            val apiResponse = authApi.login(LoginRequest(email, password))
+            // Determine if identifier is email or phone
+            val isEmail = identifier.contains("@")
+            val loginRequest = if (isEmail) {
+                LoginRequest(email = identifier, password = password)
+            } else {
+                LoginRequest(phone = identifier, password = password)
+            }
+
+            val apiResponse = authApi.login(loginRequest)
             val response = apiResponse.body()
             if (response != null && response.success && apiResponse.isSuccessful) {
                 // Now using real JWT tokens from backend
@@ -34,9 +42,24 @@ class AuthRepositoryImpl(
             } else if (response != null && !response.success) {
                 val error = response.error ?: "Login failed"
                 when (error) {
-                    "Account does not exist", "Invalid email format" -> AuthResult(emailError = UiText.DynamicString(error))
+                    "Account does not exist" -> {
+                        // For account not found, show on the field that was used for login
+                        if (isEmail) {
+                            AuthResult(emailError = UiText.DynamicString(error))
+                        } else {
+                            AuthResult(phoneNumberError = UiText.DynamicString(error))
+                        }
+                    }
+                    "Invalid email format" -> AuthResult(emailError = UiText.DynamicString(error))
                     "Incorrect password", "Account is deactivated" -> AuthResult(passwordError = UiText.DynamicString(error))
-                    else -> AuthResult(emailError = UiText.DynamicString(error))
+                    else -> {
+                        // For unknown errors, show on the appropriate field
+                        if (isEmail) {
+                            AuthResult(emailError = UiText.DynamicString(error))
+                        } else {
+                            AuthResult(phoneNumberError = UiText.DynamicString(error))
+                        }
+                    }
                 }
             } else {
                 // Handle specific error codes with field errors if body not parsed
@@ -47,11 +70,25 @@ class AuthRepositoryImpl(
                     else -> "Network error: ${apiResponse.code()}"
                 }
                 if (apiResponse.code() in 400..499) {
-                    // Map specific codes to field errors
+                    // Map specific codes to field errors based on login type
                     when (apiResponse.code()) {
-                        404 -> AuthResult(emailError = UiText.DynamicString("Account does not exist"))
+                        404 -> {
+                            // Account not found - show on appropriate field
+                            if (isEmail) {
+                                AuthResult(emailError = UiText.DynamicString("Account does not exist"))
+                            } else {
+                                AuthResult(phoneNumberError = UiText.DynamicString("Account does not exist"))
+                            }
+                        }
                         401 -> AuthResult(passwordError = UiText.DynamicString("Incorrect password"))
-                        else -> AuthResult(emailError = UiText.DynamicString("Invalid input"))
+                        else -> {
+                            // Other client errors - show on appropriate field
+                            if (isEmail) {
+                                AuthResult(emailError = UiText.DynamicString("Invalid input"))
+                            } else {
+                                AuthResult(phoneNumberError = UiText.DynamicString("Invalid input"))
+                            }
+                        }
                     }
                 } else {
                     AuthResult(result = Resource.Error(UiText.DynamicString(errorMessage)))
