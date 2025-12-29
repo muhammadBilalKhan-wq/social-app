@@ -35,8 +35,8 @@ class RegisterViewModel @Inject constructor(
             is RegisterEvent.EnteredPhoneNumber -> {
                 _uiState.update { it.copy(phoneNumber = event.value, phoneNumberError = null) }
             }
-            is RegisterEvent.EnteredUsername -> {
-                _uiState.update { it.copy(username = event.value, usernameError = null) }
+            is RegisterEvent.EnteredName -> {
+                _uiState.update { it.copy(name = event.value, nameError = null) }
             }
             is RegisterEvent.EnteredPassword -> {
                 _uiState.update { it.copy(password = event.value, passwordError = null) }
@@ -55,7 +55,7 @@ class RegisterViewModel @Inject constructor(
             }
             is RegisterEvent.Register -> {
                 val currentState = uiState.value
-                if (currentState.username.isNotEmpty() && currentState.password.isNotEmpty()) {
+                if (currentState.name.isNotEmpty() && currentState.password.isNotEmpty()) {
                     register()
                 } else {
                     validateAndNavigate()
@@ -103,16 +103,16 @@ class RegisterViewModel @Inject constructor(
 
     private fun register() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, usernameError = null, passwordError = null) }
+            _uiState.update { it.copy(isLoading = true, nameError = null, passwordError = null) }
             val currentState = uiState.value
             val registerResult = authUseCases.register(
                 email = currentState.email,
-                username = currentState.username,
+                name = currentState.name,
                 password = currentState.password,
                 password_confirm = currentState.password // Assuming password confirm is same as password
             )
             _uiState.update { it.copy(
-                usernameError = registerResult.usernameError,
+                nameError = registerResult.nameError,
                 passwordError = registerResult.passwordError,
                 isLoading = false
             ) }

@@ -54,6 +54,7 @@ class LoginViewModel @Inject constructor(
             ) }
             when(loginResult.result) {
                 is Resource.Success -> {
+                    _uiState.update { it.copy(emailError = null, passwordError = null) }
                     _eventFlow.emit(UiEvent.OnLogin)
                 }
                 is Resource.Error -> {

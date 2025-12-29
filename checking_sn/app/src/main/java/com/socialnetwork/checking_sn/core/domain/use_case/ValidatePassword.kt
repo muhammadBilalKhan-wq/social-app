@@ -10,14 +10,8 @@ class ValidatePassword {
         if (password.isBlank()) {
             return UiText.StringResource(R.string.error_password_blank)
         }
-        if (password.length < 8) {
+        if (password.length < 6) {
             return UiText.StringResource(R.string.error_password_too_short)
-        }
-        val hasUppercase = Pattern.compile("[A-Z]").matcher(password).find()
-        val hasLowercase = Pattern.compile("[a-z]").matcher(password).find()
-        val hasDigit = Pattern.compile("[0-9]").matcher(password).find()
-        if (!hasUppercase || !hasLowercase || !hasDigit) {
-            return UiText.StringResource(R.string.error_password_invalid)
         }
         return null
     }

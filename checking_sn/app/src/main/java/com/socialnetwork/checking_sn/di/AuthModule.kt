@@ -6,6 +6,7 @@ import com.socialnetwork.checking_sn.core.domain.use_case.ValidateEmail
 import com.socialnetwork.checking_sn.core.domain.use_case.ValidatePassword
 import com.socialnetwork.checking_sn.core.domain.use_case.ValidatePhoneNumber
 import com.socialnetwork.checking_sn.core.domain.use_case.ValidateUsername
+import com.socialnetwork.checking_sn.feature_auth.data.remote.AuthApi
 import com.socialnetwork.checking_sn.feature_auth.data.repository.AuthRepositoryImpl
 import com.socialnetwork.checking_sn.feature_auth.domain.repository.AuthRepository
 import com.socialnetwork.checking_sn.feature_auth.domain.use_case.AuthUseCases
@@ -34,8 +35,8 @@ object AuthModule {
 
     @Provides
     @Singleton
-    fun provideAuthRepository(authManager: AuthManager): AuthRepository {
-        return AuthRepositoryImpl(authManager)
+    fun provideAuthRepository(authManager: AuthManager, authApi: AuthApi): AuthRepository {
+        return AuthRepositoryImpl(authManager, authApi)
     }
 
     @Provides

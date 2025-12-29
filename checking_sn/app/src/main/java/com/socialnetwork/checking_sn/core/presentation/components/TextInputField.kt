@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.socialnetwork.checking_sn.core.util.UiText
@@ -55,7 +56,10 @@ fun TextInputField(
                 )
             },
             isError = error != null,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = keyboardType,
+                capitalization = KeyboardCapitalization.None
+            ),
             shape = InputFieldShape,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color.LightGray,

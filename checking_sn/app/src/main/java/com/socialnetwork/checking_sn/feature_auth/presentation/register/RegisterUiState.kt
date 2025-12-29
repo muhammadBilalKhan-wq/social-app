@@ -10,8 +10,8 @@ data class RegisterUiState(
     val phoneNumberError: UiText? = null,
     val countryCode: String = "+92",
     val countryIsoCode: String = "PK",
-    val username: String = "",
-    val usernameError: UiText? = null,
+    val name: String = "",
+    val nameError: UiText? = null,
     val password: String = "",
     val passwordError: UiText? = null,
     val isLoading: Boolean = false

@@ -42,7 +42,7 @@ fun RegisterDetailsScreen(
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
     var showPassword by remember { mutableStateOf(false) }
-    var username by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     Box(
@@ -109,10 +109,10 @@ fun RegisterDetailsScreen(
                 modifier = Modifier.padding(bottom = 48.dp, top = 24.dp)
             )
 
-            // Username field
+            // Name field
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Username",
+                    text = "Name",
                     style = TextStyle(
                         fontFamily = FontFamily.SansSerif,
                         fontWeight = FontWeight.Normal,
@@ -123,14 +123,14 @@ fun RegisterDetailsScreen(
                 )
 
                 TextField(
-                    value = username,
+                    value = name,
                     onValueChange = { newValue ->
-                        username = newValue
-                        viewModel.onEvent(RegisterEvent.EnteredUsername(newValue))
+                        name = newValue
+                        viewModel.onEvent(RegisterEvent.EnteredName(newValue))
                     },
                     placeholder = {
                         Text(
-                            text = "Choose a username",
+                            text = "Enter your name",
                             color = Color.Gray
                         )
                     },

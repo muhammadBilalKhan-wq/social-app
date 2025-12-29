@@ -2,6 +2,7 @@ package com.socialnetwork.checking_sn.core.data.manager
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.socialnetwork.checking_sn.core.util.Constants
 import com.socialnetwork.checking_sn.feature_auth.data.remote.dto.AuthResponse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +14,7 @@ import javax.inject.Singleton
 class AuthManager @Inject constructor(
     private val context: Context
 ) {
-    private val prefs: SharedPreferences = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences = context.getSharedPreferences(Constants.SHARED_PREF_NAME, Context.MODE_PRIVATE)
 
     companion object {
         private const val ACCESS_TOKEN_KEY = "jwt_token"

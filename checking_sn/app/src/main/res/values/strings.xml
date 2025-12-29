@@ -21,8 +21,7 @@
     <string name="error_email_blank">Email cannot be blank</string>
     <string name="error_email_invalid">Invalid email format</string>
     <string name="error_password_blank">Password cannot be blank</string>
-    <string name="error_password_too_short">Password must be at least 8 characters</string>
-    <string name="error_password_invalid">Password must contain uppercase, lowercase, and digit</string>
-    <string name="error_username_blank">Username cannot be blank</string>
-    <string name="error_username_too_short">Username must be at least 4 characters</string>
+    <string name="error_password_too_short">Password must be at least 6 characters</string>
+    <string name="error_name_blank">Name cannot be blank</string>
+    <string name="error_name_too_short">Name must be at least 2 characters</string>
 </resources>

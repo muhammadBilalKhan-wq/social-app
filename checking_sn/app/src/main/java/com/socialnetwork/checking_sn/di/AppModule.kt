@@ -42,13 +42,27 @@ object AppModule {
         return OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
             .addInterceptor {
-                val token = sharedPreferences.getString(Constants.KEY_JWT_TOKEN, "")
-                val requestBuilder = it.request().newBuilder()
-                if (!token.isNullOrEmpty()) {
-                    requestBuilder.addHeader("Authorization", "Bearer $token")
+                val url = it.request().url.toString()
+                if (!url.contains("/api/auth/login/") && !url.contains("/api/auth/register/")) {
+                    val token = sharedPreferences.getString(Constants.KEY_JWT_TOKEN, "")
+                    val requestBuilder = it.request().newBuilder()
+                    if (!token.isNullOrEmpty()) {
+                        requestBuilder.addHeader("Authorization", "Bearer $token")
+                    }
                 }
-                it.proceed(requestBuilder.build())
+                it.proceed(it.request())
             }
             .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAuthApi(okHttpClient: OkHttpClient): AuthApi {
+        return Retrofit.Builder()
+            .baseUrl(AuthApi.BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(AuthApi::class.java)
     }
 }

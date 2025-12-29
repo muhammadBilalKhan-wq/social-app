@@ -16,23 +16,23 @@ class RegisterUseCase(
     private val validatePassword: ValidatePassword
     ) {
 
-    suspend operator fun invoke(email: String, username: String, password: String, password_confirm: String): AuthResult {
+    suspend operator fun invoke(email: String, name: String, password: String, password_confirm: String): AuthResult {
         Log.d("RegisterUseCase", "invoke() called - BEFORE validation")
         val emailError = validateEmail(email)
-        val usernameError = validateUsername(username)
+        val nameError = validateUsername(name)
         val passwordError = validatePassword(password)
         val passwordConfirmError = if (password != password_confirm) UiText.DynamicString("Passwords do not match") else null
 
-        if (emailError != null || usernameError != null || passwordError != null || passwordConfirmError != null) {
-            Log.d("RegisterUseCase", "Validation failed: email=$emailError, username=$usernameError, password=$passwordError, passwordConfirm=$passwordConfirmError")
+        if (emailError != null || nameError != null || passwordError != null || passwordConfirmError != null) {
+            Log.d("RegisterUseCase", "Validation failed: email=$emailError, name=$nameError, password=$passwordError, passwordConfirm=$passwordConfirmError")
             return AuthResult(
                 emailError = emailError,
-                usernameError = usernameError,
+                nameError = nameError,
                 passwordError = passwordError,
                 passwordConfirmError = passwordConfirmError
             )
         }
         Log.d("RegisterUseCase", "Validation passed - calling repository.register()")
-        return repository.register(email, username, password, password_confirm)
+        return repository.register(email, name, password, password_confirm)
     }
 }
