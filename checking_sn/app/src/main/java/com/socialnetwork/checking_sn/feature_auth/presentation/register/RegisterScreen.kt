@@ -32,7 +32,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun RegisterScreen(
     navController: NavController,
-    viewModel: RegisterViewModel = hiltViewModel()
+    viewModel: RegisterViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -41,7 +41,13 @@ fun RegisterScreen(
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is UiEvent.NavigateToRegisterDetails -> {
-                    navController.navigate(Screen.RegisterDetailsScreen.route)
+                    val state = viewModel.uiState.value
+                    val (type, value) = when (state.selectedOption) {
+                        "Email" -> "email" to state.email
+                        "Phone" -> "phone" to state.phoneNumber
+                        else -> "email" to state.email
+                    }
+                    navController.navigate(Screen.RegisterDetailsScreen.createRoute(type, value))
                 }
                 else -> {}
             }

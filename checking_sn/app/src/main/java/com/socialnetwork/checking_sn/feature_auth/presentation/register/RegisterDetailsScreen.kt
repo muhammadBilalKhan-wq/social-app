@@ -1,25 +1,18 @@
 package com.socialnetwork.checking_sn.feature_auth.presentation.register
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,23 +20,35 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.socialnetwork.checking_sn.core.presentation.components.TextInputField
+import com.socialnetwork.checking_sn.core.presentation.components.PasswordInputField
+import com.socialnetwork.checking_sn.core.presentation.util.UiEvent
+import com.socialnetwork.checking_sn.core.presentation.util.AUTH_GRAPH_ROUTE
+import com.socialnetwork.checking_sn.core.presentation.util.FEED_GRAPH_ROUTE
 
 @Composable
 fun RegisterDetailsScreen(
     navController: NavController,
-    viewModel: RegisterViewModel = hiltViewModel()
+    viewModel: RegisterViewModel
 ) {
-    var showPassword by remember { mutableStateOf(false) }
-    var name by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(key1 = true) {
+        viewModel.eventFlow.collect { event ->
+            when (event) {
+                is UiEvent.OnRegister -> {
+                    navController.navigate(FEED_GRAPH_ROUTE) {
+                        popUpTo(AUTH_GRAPH_ROUTE) { inclusive = true }
+                    }
+                }
+                else -> {}
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -97,8 +102,13 @@ fun RegisterDetailsScreen(
             Spacer(modifier = Modifier.weight(0.2f))
 
             // Title (positioned like "Enter phone or email" in previous screen)
+            val registrationMethod = when (uiState.selectedOption) {
+                "Email" -> "with ${uiState.email}"
+                "Phone" -> "with ${uiState.phoneNumber}"
+                else -> ""
+            }
             Text(
-                text = "Next, create an account",
+                text = "Next, create an account $registrationMethod",
                 style = TextStyle(
                     fontFamily = FontFamily.SansSerif,
                     fontWeight = FontWeight.Bold,
@@ -110,110 +120,24 @@ fun RegisterDetailsScreen(
             )
 
             // Name field
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "Name",
-                    style = TextStyle(
-                        fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 14.sp,
-                        color = Color(0xFF808080)
-                    ),
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                TextField(
-                    value = name,
-                    onValueChange = { newValue ->
-                        name = newValue
-                        viewModel.onEvent(RegisterEvent.EnteredName(newValue))
-                    },
-                    placeholder = {
-                        Text(
-                            text = "Enter your name",
-                            color = Color.Gray
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .border(
-                            width = 1.dp,
-                            color = Color(0xFFF2F2F2),
-                            shape = RoundedCornerShape(12.dp)
-                        ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFFF2F2F2),
-                        unfocusedContainerColor = Color(0xFFF2F2F2),
-                        disabledContainerColor = Color(0xFFF2F2F2),
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent
-                    ),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                    singleLine = true
-                )
-            }
+            TextInputField(
+                value = uiState.name,
+                onValueChange = { viewModel.onEvent(RegisterEvent.EnteredName(it)) },
+                label = "Name",
+                placeholder = "Enter your name",
+                error = uiState.nameError
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Password field
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "Password",
-                    style = TextStyle(
-                        fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 14.sp,
-                        color = Color(0xFF808080)
-                    ),
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                TextField(
-                    value = password,
-                    onValueChange = { newValue ->
-                        password = newValue
-                        viewModel.onEvent(RegisterEvent.EnteredPassword(newValue))
-                    },
-                    placeholder = {
-                        Text(
-                            text = "Create a password",
-                            color = Color.Gray
-                        )
-                    },
-                    visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        IconButton(onClick = { showPassword = !showPassword }) {
-                            Icon(
-                                imageVector = if (showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                                contentDescription = if (showPassword) "Hide password" else "Show password",
-                                tint = Color.Gray
-                            )
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .border(
-                            width = 1.dp,
-                            color = Color(0xFFF2F2F2),
-                            shape = RoundedCornerShape(12.dp)
-                        ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFFF2F2F2),
-                        unfocusedContainerColor = Color(0xFFF2F2F2),
-                        disabledContainerColor = Color(0xFFF2F2F2),
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent
-                    ),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    singleLine = true
-                )
-            }
+            PasswordInputField(
+                value = uiState.password,
+                onValueChange = { viewModel.onEvent(RegisterEvent.EnteredPassword(it)) },
+                label = "Password",
+                placeholder = "Create a password",
+                error = uiState.passwordError
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
 

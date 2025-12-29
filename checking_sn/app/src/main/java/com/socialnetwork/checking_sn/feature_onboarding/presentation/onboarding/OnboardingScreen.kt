@@ -28,7 +28,8 @@ fun OnboardingScreen(
     val pagerState = rememberPagerState(pageCount = { 3 })
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Carousel
+        // Carousel - COMMENTED OUT
+        /*
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
@@ -46,6 +47,14 @@ fun OnboardingScreen(
                 contentScale = ContentScale.Crop
             )
         }
+        */
+
+        // Plain background instead of carousel
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+        )
 
         // Logo at top center
         Image(

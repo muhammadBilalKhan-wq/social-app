@@ -5,6 +5,7 @@ import com.socialnetwork.checking_sn.core.util.UiText
 
 data class AuthResult(
     val emailError: UiText? = null,
+    val phoneNumberError: UiText? = null,
     val nameError: UiText? = null,
     val passwordError: UiText? = null,
     val passwordConfirmError: UiText? = null,

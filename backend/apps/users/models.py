@@ -3,11 +3,18 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, password=None, name=None, **extra_fields):
-        if not email:
-            raise ValueError('The Email field must be set')
-        email = self.normalize_email(email)
-        user = self.model(email=email, name=name, **extra_fields)
+    def create_user(self, email=None, phone=None, password=None, name=None, **extra_fields):
+        if not email and not phone:
+            raise ValueError('Either Email or Phone must be set')
+        if email:
+            email = self.normalize_email(email)
+            username = email
+        elif phone:
+            username = phone
+        else:
+            raise ValueError('Invalid user creation parameters')
+
+        user = self.model(email=email, phone=phone, username=username, name=name, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -25,7 +32,8 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, blank=True, null=True)
+    phone = models.CharField(max_length=20, unique=True, blank=True, null=True)
     name = models.CharField(max_length=255)
 
     objects = UserManager()

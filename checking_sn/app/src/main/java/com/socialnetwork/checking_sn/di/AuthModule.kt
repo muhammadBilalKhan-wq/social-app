@@ -10,6 +10,8 @@ import com.socialnetwork.checking_sn.feature_auth.data.remote.AuthApi
 import com.socialnetwork.checking_sn.feature_auth.data.repository.AuthRepositoryImpl
 import com.socialnetwork.checking_sn.feature_auth.domain.repository.AuthRepository
 import com.socialnetwork.checking_sn.feature_auth.domain.use_case.AuthUseCases
+import com.socialnetwork.checking_sn.feature_auth.domain.use_case.check_email_available.CheckEmailAvailableUseCase
+import com.socialnetwork.checking_sn.feature_auth.domain.use_case.check_phone_available.CheckPhoneAvailableUseCase
 import com.socialnetwork.checking_sn.feature_auth.domain.use_case.get_me.GetMeUseCase
 import com.socialnetwork.checking_sn.feature_auth.domain.use_case.login.LoginUseCase
 import com.socialnetwork.checking_sn.feature_auth.domain.use_case.register.RegisterUseCase
@@ -48,8 +50,10 @@ object AuthModule {
             validatePassword = ValidatePassword(),
             validatePhoneNumber = ValidatePhoneNumber(),
             login = LoginUseCase(repository, ValidateEmail(), ValidatePassword()),
-            register = RegisterUseCase(repository, ValidateEmail(), ValidateUsername(), ValidatePassword()),
-            getMe = GetMeUseCase(repository)
+            register = RegisterUseCase(repository, ValidateEmail(), ValidateUsername(), ValidatePassword(), ValidatePhoneNumber()),
+            getMe = GetMeUseCase(repository),
+            checkEmailAvailable = CheckEmailAvailableUseCase(repository),
+            checkPhoneAvailable = CheckPhoneAvailableUseCase(repository)
         )
     }
 }

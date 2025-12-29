@@ -23,6 +23,16 @@ interface AuthApi {
         @Body request: LoginRequest
     ): Response<LoginRegisterResponse>
 
+    @POST("/api/auth/check_email/")
+    suspend fun checkEmail(
+        @Body request: Map<String, String>
+    ): Response<Map<String, Boolean>>
+
+    @POST("/api/auth/check_phone/")
+    suspend fun checkPhone(
+        @Body request: Map<String, String>
+    ): Response<Map<String, Boolean>>
+
     @GET("/api/auth/me/")
     suspend fun getMe(): Response<BasicApiResponse<UserResponse>>
 

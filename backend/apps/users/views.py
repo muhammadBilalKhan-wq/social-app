@@ -13,7 +13,7 @@ from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
 @api_view(['POST'])
 def register_view(request):
     serializer = RegisterSerializer(data=request.data)
-    
+
     if serializer.is_valid():
         user = serializer.save()
         refresh = RefreshToken.for_user(user)
@@ -23,14 +23,21 @@ def register_view(request):
             "access": str(refresh.access_token),
             "refresh": str(refresh)
         }, status=status.HTTP_201_CREATED)
-    if 'email' in serializer.errors:
+
+    # Get the first error message
+    errors = serializer.errors
+    if errors:
+        first_error_key = next(iter(errors))
+        first_error = errors[first_error_key][0] if errors[first_error_key] else "Registration failed"
+
         return Response({
             "success": False,
-            "error": "Invalid email format"
+            "error": str(first_error)
         }, status=status.HTTP_400_BAD_REQUEST)
+
     return Response({
         "success": False,
-        "error": str(serializer.errors)
+        "error": "Registration failed"
     }, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -84,6 +91,24 @@ def protected_view(request):
         "message": "You are authenticated!",
         "user": request.user.username
     })
+
+
+@api_view(['POST'])
+def check_email(request):
+    email = request.data.get('email')
+    if not email:
+        return Response({"available": False}, status=status.HTTP_400_BAD_REQUEST)
+    available = not User.objects.filter(email__iexact=email.strip()).exists()
+    return Response({"available": available})
+
+
+@api_view(['POST'])
+def check_phone(request):
+    phone = request.data.get('phone')
+    if not phone:
+        return Response({"available": False}, status=status.HTTP_400_BAD_REQUEST)
+    available = not User.objects.filter(phone=phone.strip()).exists()
+    return Response({"available": available})
 
 
 @api_view(['GET'])

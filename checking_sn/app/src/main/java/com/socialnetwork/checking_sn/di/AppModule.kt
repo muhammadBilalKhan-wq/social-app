@@ -43,7 +43,7 @@ object AppModule {
             .addInterceptor(loggingInterceptor)
             .addInterceptor {
                 val url = it.request().url.toString()
-                if (!url.contains("/api/auth/login/") && !url.contains("/api/auth/register/")) {
+                if (!url.contains("/api/auth/login/") && !url.contains("/api/auth/register/") && !url.contains("/api/auth/check_email/")) {
                     val token = sharedPreferences.getString(Constants.KEY_JWT_TOKEN, "")
                     val requestBuilder = it.request().newBuilder()
                     if (!token.isNullOrEmpty()) {

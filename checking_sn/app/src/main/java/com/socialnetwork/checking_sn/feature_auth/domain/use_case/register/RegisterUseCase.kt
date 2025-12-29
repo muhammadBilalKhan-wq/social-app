@@ -3,6 +3,7 @@ package com.socialnetwork.checking_sn.feature_auth.domain.use_case.register
 import android.util.Log
 import com.socialnetwork.checking_sn.core.domain.use_case.ValidateEmail
 import com.socialnetwork.checking_sn.core.domain.use_case.ValidatePassword
+import com.socialnetwork.checking_sn.core.domain.use_case.ValidatePhoneNumber
 import com.socialnetwork.checking_sn.core.domain.use_case.ValidateUsername
 import com.socialnetwork.checking_sn.core.util.Resource
 import com.socialnetwork.checking_sn.core.util.UiText
@@ -13,26 +14,29 @@ class RegisterUseCase(
     private val repository: AuthRepository,
     private val validateEmail: ValidateEmail,
     private val validateUsername: ValidateUsername,
-    private val validatePassword: ValidatePassword
+    private val validatePassword: ValidatePassword,
+    private val validatePhoneNumber: ValidatePhoneNumber
     ) {
 
-    suspend operator fun invoke(email: String, name: String, password: String, password_confirm: String): AuthResult {
+    suspend operator fun invoke(email: String?, phone: String?, name: String, password: String, password_confirm: String): AuthResult {
         Log.d("RegisterUseCase", "invoke() called - BEFORE validation")
-        val emailError = validateEmail(email)
         val nameError = validateUsername(name)
         val passwordError = validatePassword(password)
         val passwordConfirmError = if (password != password_confirm) UiText.DynamicString("Passwords do not match") else null
 
-        if (emailError != null || nameError != null || passwordError != null || passwordConfirmError != null) {
-            Log.d("RegisterUseCase", "Validation failed: email=$emailError, name=$nameError, password=$passwordError, passwordConfirm=$passwordConfirmError")
+        // Additional validation for email if provided
+        val emailError = if (email != null) validateEmail(email) else null
+
+        if (nameError != null || passwordError != null || passwordConfirmError != null || emailError != null) {
+            Log.d("RegisterUseCase", "Validation failed: name=$nameError, password=$passwordError, passwordConfirm=$passwordConfirmError, email=$emailError")
             return AuthResult(
-                emailError = emailError,
                 nameError = nameError,
                 passwordError = passwordError,
-                passwordConfirmError = passwordConfirmError
+                passwordConfirmError = passwordConfirmError,
+                emailError = emailError
             )
         }
         Log.d("RegisterUseCase", "Validation passed - calling repository.register()")
-        return repository.register(email, name, password, password_confirm)
+        return repository.register(email, phone, name, password, password_confirm)
     }
 }

@@ -64,13 +64,14 @@ class AuthRepositoryImpl(
     }
 
     override suspend fun register(
-        email: String,
+        email: String?,
+        phone: String?,
         name: String,
         password: String,
         password_confirm: String
     ): AuthResult {
         return try {
-            val apiResponse = authApi.register(CreateAccountRequest(email, name, password))
+            val apiResponse = authApi.register(CreateAccountRequest(email?.trim(), phone?.trim(), name.trim(), password))
             val response = apiResponse.body()
             if (response != null && response.success && apiResponse.isSuccessful) {
                 // Now using real JWT tokens from backend
@@ -83,7 +84,13 @@ class AuthRepositoryImpl(
                 AuthResult(result = Resource.Success(Unit))
             } else if (response != null && !response.success) {
                 val error = response.error ?: "Registration failed"
-                AuthResult(emailError = UiText.DynamicString(error))
+                when (error) {
+                    "Invalid email format", "Account already exists", "Account with this email already exists" -> AuthResult(emailError = UiText.DynamicString(error))
+                    "Account with this phone number already exists" -> AuthResult(phoneNumberError = UiText.DynamicString(error))
+                    "Password too short" -> AuthResult(passwordError = UiText.DynamicString(error))
+                    "Name is required" -> AuthResult(nameError = UiText.DynamicString(error))
+                    else -> AuthResult(emailError = UiText.DynamicString(error))
+                }
             } else {
                 val errorMessage = when (apiResponse.code()) {
                     400 -> "Bad request"
@@ -94,6 +101,36 @@ class AuthRepositoryImpl(
         } catch (e: Exception) {
             Log.e("AuthRepository", "Register error", e)
             AuthResult(result = Resource.Error(UiText.DynamicString("Network error: ${e.message}")))
+        }
+    }
+
+    suspend fun checkEmailAvailable(email: String): Boolean {
+        return try {
+            val apiResponse = authApi.checkEmail(mapOf("email" to email.trim()))
+            if (apiResponse.isSuccessful) {
+                val response = apiResponse.body()
+                response?.get("available") == true
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Check email error", e)
+            false
+        }
+    }
+
+    suspend fun checkPhoneAvailable(phone: String): Boolean {
+        return try {
+            val apiResponse = authApi.checkPhone(mapOf("phone" to phone.trim()))
+            if (apiResponse.isSuccessful) {
+                val response = apiResponse.body()
+                response?.get("available") == true
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Check phone error", e)
+            false
         }
     }
 

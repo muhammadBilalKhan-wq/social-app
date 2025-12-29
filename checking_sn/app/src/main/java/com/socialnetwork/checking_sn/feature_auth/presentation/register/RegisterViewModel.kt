@@ -81,7 +81,12 @@ class RegisterViewModel @Inject constructor(
                     _uiState.update { it.copy(emailError = emailError) }
                 } else {
                     viewModelScope.launch {
-                        _eventFlow.emit(UiEvent.NavigateToRegisterDetails)
+                        val available = authUseCases.checkEmailAvailable(currentState.email)
+                        if (available) {
+                            _eventFlow.emit(UiEvent.NavigateToRegisterDetails)
+                        } else {
+                            _uiState.update { it.copy(emailError = UiText.DynamicString("Account already exists")) }
+                        }
                     }
                 }
             }
@@ -94,7 +99,12 @@ class RegisterViewModel @Inject constructor(
                     _uiState.update { it.copy(phoneNumberError = phoneError) }
                 } else {
                     viewModelScope.launch {
-                        _eventFlow.emit(UiEvent.NavigateToRegisterDetails)
+                        val available = authUseCases.checkPhoneAvailable(currentState.phoneNumber)
+                        if (available) {
+                            _eventFlow.emit(UiEvent.NavigateToRegisterDetails)
+                        } else {
+                            _uiState.update { it.copy(phoneNumberError = UiText.DynamicString("Account already exists")) }
+                        }
                     }
                 }
             }
@@ -103,15 +113,23 @@ class RegisterViewModel @Inject constructor(
 
     private fun register() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, nameError = null, passwordError = null) }
+            _uiState.update { it.copy(isLoading = true, emailError = null, nameError = null, passwordError = null, phoneNumberError = null) }
             val currentState = uiState.value
+            val (email, phone) = when (currentState.selectedOption) {
+                "Email" -> currentState.email to null
+                "Phone" -> null to currentState.phoneNumber
+                else -> currentState.email to null
+            }
             val registerResult = authUseCases.register(
-                email = currentState.email,
+                email = email,
+                phone = phone,
                 name = currentState.name,
                 password = currentState.password,
                 password_confirm = currentState.password // Assuming password confirm is same as password
             )
             _uiState.update { it.copy(
+                emailError = registerResult.emailError,
+                phoneNumberError = registerResult.phoneNumberError,
                 nameError = registerResult.nameError,
                 passwordError = registerResult.passwordError,
                 isLoading = false
@@ -121,9 +139,7 @@ class RegisterViewModel @Inject constructor(
                     _eventFlow.emit(UiEvent.OnRegister)
                 }
                 is Resource.Error -> {
-                    _eventFlow.emit(
-                        UiEvent.ShowSnackbar(registerResult.result.uiText ?: UiText.DynamicString(""))
-                    )
+                    // Errors are handled via field errors in uiState
                 }
                 null -> {}
             }
