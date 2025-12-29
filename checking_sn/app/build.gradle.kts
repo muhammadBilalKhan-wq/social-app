@@ -80,4 +80,7 @@ dependencies {
 
     // Material Icons
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
+
+    // Phone number validation
+    implementation("com.googlecode.libphonenumber:libphonenumber:8.13.25")
 }

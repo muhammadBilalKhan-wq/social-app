@@ -1,41 +1,28 @@
 package com.socialnetwork.checking_sn.feature_auth.presentation.register
 
 import android.util.Log
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.socialnetwork.checking_sn.core.presentation.util.UiEvent
 import com.socialnetwork.checking_sn.core.util.Resource
 import com.socialnetwork.checking_sn.core.util.UiText
 import com.socialnetwork.checking_sn.feature_auth.domain.use_case.AuthUseCases
-import com.socialnetwork.checking_sn.feature_auth.presentation.login.components.PasswordTextFieldState
-import com.socialnetwork.checking_sn.feature_auth.presentation.login.components.StandardTextFieldState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val authUseCases: AuthUseCases
+    val authUseCases: AuthUseCases
 ) : ViewModel() {
 
-    private val _emailState = mutableStateOf(StandardTextFieldState())
-    val emailState: State<StandardTextFieldState> = _emailState
-
-    private val _usernameState = mutableStateOf(StandardTextFieldState())
-    val usernameState: State<StandardTextFieldState> = _usernameState
-
-    private val _passwordState = mutableStateOf(PasswordTextFieldState())
-    val passwordState: State<PasswordTextFieldState> = _passwordState
-
-    private val _passwordConfirmState = mutableStateOf(PasswordTextFieldState())
-    val passwordConfirmState: State<PasswordTextFieldState> = _passwordConfirmState
-
-    private val _registerState = mutableStateOf(RegisterState())
-    val registerState: State<RegisterState> = _registerState
+    private val _uiState = MutableStateFlow(RegisterUiState())
+    val uiState = _uiState.asStateFlow()
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
@@ -43,86 +30,102 @@ class RegisterViewModel @Inject constructor(
     fun onEvent(event: RegisterEvent) {
         when (event) {
             is RegisterEvent.EnteredEmail -> {
-                _emailState.value = emailState.value.copy(
-                    text = event.value
-                )
+                _uiState.update { it.copy(email = event.value, emailError = null) }
+            }
+            is RegisterEvent.EnteredPhoneNumber -> {
+                _uiState.update { it.copy(phoneNumber = event.value, phoneNumberError = null) }
             }
             is RegisterEvent.EnteredUsername -> {
-                _usernameState.value = usernameState.value.copy(
-                    text = event.value
-                )
+                _uiState.update { it.copy(username = event.value, usernameError = null) }
             }
             is RegisterEvent.EnteredPassword -> {
-                _passwordState.value = passwordState.value.copy(
-                    text = event.value
-                )
+                _uiState.update { it.copy(password = event.value, passwordError = null) }
             }
             is RegisterEvent.EnteredPasswordConfirm -> {
-                _passwordConfirmState.value = passwordConfirmState.value.copy(
-                    text = event.value
-                )
+                // Handle in details screen
+            }
+            is RegisterEvent.SelectedOption -> {
+                _uiState.update { it.copy(selectedOption = event.option, emailError = null, phoneNumberError = null) }
+            }
+            is RegisterEvent.SelectedCountry -> {
+                _uiState.update { it.copy(countryCode = event.code, countryIsoCode = event.isoCode) }
             }
             is RegisterEvent.TogglePasswordVisibility -> {
-                _passwordState.value = passwordState.value.copy(
-                    isPasswordVisible = !passwordState.value.isPasswordVisible
-                )
+                // Handle in details screen
             }
             is RegisterEvent.Register -> {
-                register()
+                val currentState = uiState.value
+                if (currentState.username.isNotEmpty() && currentState.password.isNotEmpty()) {
+                    register()
+                } else {
+                    validateAndNavigate()
+                }
+            }
+        }
+    }
+
+    fun setPhoneNumberError(error: UiText) {
+        _uiState.update { it.copy(phoneNumberError = error) }
+    }
+
+    fun setEmailError(error: UiText) {
+        _uiState.update { it.copy(emailError = error) }
+    }
+
+    private fun validateAndNavigate() {
+        val currentState = uiState.value
+        when (currentState.selectedOption) {
+            "Email" -> {
+                val emailError = authUseCases.validateEmail(currentState.email)
+                if (emailError != null) {
+                    _uiState.update { it.copy(emailError = emailError) }
+                } else {
+                    viewModelScope.launch {
+                        _eventFlow.emit(UiEvent.NavigateToRegisterDetails)
+                    }
+                }
+            }
+            "Phone" -> {
+                val phoneError = authUseCases.validatePhoneNumber(
+                    currentState.phoneNumber,
+                    currentState.countryIsoCode
+                )
+                if (phoneError != null) {
+                    _uiState.update { it.copy(phoneNumberError = phoneError) }
+                } else {
+                    viewModelScope.launch {
+                        _eventFlow.emit(UiEvent.NavigateToRegisterDetails)
+                    }
+                }
             }
         }
     }
 
     private fun register() {
-        Log.d("RegisterViewModel", "register() called")
         viewModelScope.launch {
-            Log.d("RegisterViewModel", "Coroutine started - launching API call")
-            _emailState.value = emailState.value.copy(error = null)
-            _usernameState.value = usernameState.value.copy(error = null)
-            _passwordState.value = passwordState.value.copy(error = null)
-            _passwordConfirmState.value = passwordConfirmState.value.copy(error = null)
-            _registerState.value = RegisterState(isLoading = true)
+            _uiState.update { it.copy(isLoading = true, usernameError = null, passwordError = null) }
+            val currentState = uiState.value
             val registerResult = authUseCases.register(
-                email = emailState.value.text,
-                username = usernameState.value.text,
-                password = passwordState.value.text,
-                password_confirm = passwordConfirmState.value.text
+                email = currentState.email,
+                username = currentState.username,
+                password = currentState.password,
+                password_confirm = currentState.password // Assuming password confirm is same as password
             )
-            if(registerResult.emailError != null) {
-                _emailState.value = emailState.value.copy(
-                    error = registerResult.emailError
-                )
-            }
-            if(registerResult.usernameError != null) {
-                _usernameState.value = usernameState.value.copy(
-                    error = registerResult.usernameError
-                )
-            }
-            if(registerResult.passwordError != null) {
-                _passwordState.value = passwordState.value.copy(
-                    error = registerResult.passwordError
-                )
-            }
-            if(registerResult.passwordConfirmError != null) {
-                _passwordConfirmState.value = passwordConfirmState.value.copy(
-                    error = registerResult.passwordConfirmError
-                )
-            }
+            _uiState.update { it.copy(
+                usernameError = registerResult.usernameError,
+                passwordError = registerResult.passwordError,
+                isLoading = false
+            ) }
             when(registerResult.result) {
                 is Resource.Success -> {
-                    _eventFlow.emit(
-                        UiEvent.OnRegister
-                    )
+                    _eventFlow.emit(UiEvent.OnRegister)
                 }
                 is Resource.Error -> {
-                    _registerState.value = RegisterState(isLoading = false)
                     _eventFlow.emit(
                         UiEvent.ShowSnackbar(registerResult.result.uiText ?: UiText.DynamicString(""))
                     )
                 }
-                 null -> {
-                    _registerState.value = RegisterState(isLoading = false)
-                 }
+                null -> {}
             }
         }
     }

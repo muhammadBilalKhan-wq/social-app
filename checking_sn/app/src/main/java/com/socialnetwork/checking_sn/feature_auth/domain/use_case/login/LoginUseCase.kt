@@ -7,17 +7,24 @@ import com.socialnetwork.checking_sn.feature_auth.domain.repository.AuthReposito
 
 class LoginUseCase(
     private val repository: AuthRepository,
-    private val validateEmail: ValidateEmail
+    private val validateEmail: ValidateEmail,
+    private val validatePassword: com.socialnetwork.checking_sn.core.domain.use_case.ValidatePassword
     ) {
 
-    suspend operator fun invoke(email: String): AuthResult {
+    suspend operator fun invoke(email: String, password: String): AuthResult {
         val emailError = validateEmail(email)
+        val passwordError = validatePassword(password)
 
         if (emailError != null) {
             return AuthResult(
                 emailError = emailError
             )
         }
-        return repository.login(email, "")
+        if (passwordError != null) {
+            return AuthResult(
+                passwordError = passwordError
+            )
+        }
+        return repository.login(email, password)
     }
 }

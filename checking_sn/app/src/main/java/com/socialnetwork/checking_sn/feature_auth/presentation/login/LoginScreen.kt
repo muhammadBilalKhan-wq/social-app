@@ -1,55 +1,48 @@
 package com.socialnetwork.checking_sn.feature_auth.presentation.login
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.socialnetwork.checking_sn.R
-import com.socialnetwork.checking_sn.core.presentation.components.StandardTextField
-import com.socialnetwork.checking_sn.core.presentation.components.auth.OrDivider
-import com.socialnetwork.checking_sn.core.presentation.components.auth.SocialLoginButton
-import com.socialnetwork.checking_sn.core.presentation.components.buttons.PrimaryActionButton
+import com.socialnetwork.checking_sn.core.presentation.components.PasswordInputField
+import com.socialnetwork.checking_sn.core.presentation.components.PrimaryButton
+import com.socialnetwork.checking_sn.core.presentation.components.TextInputField
+import com.socialnetwork.checking_sn.ui.components.TopBar
 import com.socialnetwork.checking_sn.core.presentation.util.AUTH_GRAPH_ROUTE
 import com.socialnetwork.checking_sn.core.presentation.util.FEED_GRAPH_ROUTE
 import com.socialnetwork.checking_sn.core.presentation.util.UiEvent
-import com.socialnetwork.checking_sn.core.presentation.util.Screen
-import com.socialnetwork.checking_sn.ui.theme.*
+import com.socialnetwork.checking_sn.ui.theme.LightGrayShapes
+import com.socialnetwork.checking_sn.ui.theme.LinkTextColor
+import com.socialnetwork.checking_sn.ui.theme.Spacing
 import kotlinx.coroutines.flow.collectLatest
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     navController: NavController,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
-    val focusManager = LocalFocusManager.current
 
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
@@ -67,155 +60,117 @@ fun LoginScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Blurred background
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            TopBar(
+                title = "Login",
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+    ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            BackgroundGradientStart,
-                            BackgroundGradientMiddle,
-                            BackgroundGradientEnd
-                        )
-                    )
-                )
-                .blur(20.dp)
-        )
-
-        // Main card
-        Card(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 80.dp)
-                .shadow(
-                    elevation = 32.dp,
-                    shape = RoundedCornerShape(28.dp),
-                    ambientColor = Color.Black.copy(alpha = 0.2f),
-                    spotColor = Color.Black.copy(alpha = 0.2f)
-                ),
-            shape = RoundedCornerShape(28.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.7f))
+                .background(Color.White)
+                .padding(paddingValues)
         ) {
+            // Background translucent shapes
+            Box(modifier = Modifier.fillMaxSize()) {
+                // Large circle top-left
+                Box(
+                    modifier = Modifier
+                        .size(200.dp)
+                        .offset(x = (-50).dp, y = (-50).dp)
+                        .background(LightGrayShapes, shape = CircleShape)
+                )
+                // Medium circle bottom-right
+                Box(
+                    modifier = Modifier
+                        .size(150.dp)
+                        .offset(x = 250.dp, y = 400.dp)
+                        .background(LightGrayShapes, shape = CircleShape)
+                )
+                // Small circle center-right
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .offset(x = 300.dp, y = 200.dp)
+                        .background(LightGrayShapes, shape = CircleShape)
+                )
+                // Organic shape top-right
+                Box(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .offset(x = 320.dp, y = (-20).dp)
+                        .clip(CircleShape)
+                        .background(LightGrayShapes)
+                )
+            }
+
+            // Main content
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) { focusManager.clearFocus() },
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(horizontal = Spacing.ScreenPaddingHorizontal, vertical = Spacing.ScreenPaddingVertical)
+                    .verticalScroll(rememberScrollState())
+                    .imePadding(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
             ) {
-                // App logo at top
-                Image(
-                    painter = painterResource(id = R.drawable.app_logo),
-                    contentDescription = "App Logo",
-                    modifier = Modifier.padding(top = 24.dp, bottom = 16.dp).size(300.dp, 150.dp)
+                Spacer(modifier = Modifier.height(Spacing.ExtraLarge))
+
+                // Header
+                Text(
+                    text = "Welcome back!",
+                    style = MaterialTheme.typography.displayMedium,
+                    textAlign = TextAlign.Center,
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = Spacing.XXLarge)
                 )
 
-                // Centered main form
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        // Email field
-                        StandardTextField(
-                            text = viewModel.emailState.value.text,
-                            onValueChange = {
-                                viewModel.onEvent(LoginEvent.EnteredEmail(it))
-                            },
-                            error = viewModel.emailState.value.error,
-                            hint = stringResource(id = R.string.login_hint),
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Email,
-                                    contentDescription = "Email",
-                                    tint = Color.Gray
-                                )
-                            }
-                        )
+                // Email field
+                TextInputField(
+                    value = uiState.email,
+                    onValueChange = { viewModel.onEvent(LoginEvent.EnteredEmail(it)) },
+                    label = "Email or Phone Number",
+                    placeholder = "Enter your email or phone",
+                    error = uiState.emailError,
+                    keyboardType = KeyboardType.Email
+                )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(Spacing.Medium))
 
-                        // Sign In button
-                        PrimaryActionButton(
-                            text = stringResource(id = R.string.sign_in),
-                            onClick = {
-                                viewModel.onEvent(LoginEvent.Login)
-                            },
-                            enabled = !viewModel.loginState.value.isLoading,
-                            isAuthStyle = true
-                        )
+                // Password field
+                PasswordInputField(
+                    value = uiState.password,
+                    onValueChange = { viewModel.onEvent(LoginEvent.EnteredPassword(it)) },
+                    label = "Password",
+                    placeholder = "Enter your password",
+                    error = uiState.passwordError
+                )
 
-                        // Divider
-                        OrDivider(modifier = Modifier.padding(top = 32.dp))
+                Spacer(modifier = Modifier.height(Spacing.ExtraLarge))
 
-                        Spacer(modifier = Modifier.height(32.dp))
+                // Log In button
+                PrimaryButton(
+                    text = "Log In",
+                    onClick = { viewModel.onEvent(LoginEvent.Login) },
+                    enabled = !uiState.isLoading
+                )
 
-                        // Social logins
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            // Google button
-                            SocialLoginButton(onClick = { /* TODO: Google login */ })
-                        }
+                // Forgot Password link
+                Text(
+                    text = "Forgot Password?",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = LinkTextColor,
+                    modifier = Modifier
+                        .padding(top = Spacing.Large)
+                        .clickable { /* TODO: Navigate to forgot password */ }
+                )
 
-                        // Secondary text at bottom
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.BottomCenter
-                        ) {
-                            Text(
-                                text = "Create yours now",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color(0xFF7C3AED),
-                                modifier = Modifier
-                                    .padding(bottom = 32.dp)
-                                    .clickable {
-                                        navController.navigate(Screen.RegisterScreen.route)
-                                    }
-                            )
-                        }
-                    }
-                }
-
-
+                Spacer(modifier = Modifier.height(Spacing.ExtraLarge))
             }
         }
-
-        // Footer
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(24.dp),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 24.dp)
-        ) {
-            Text(
-                text = stringResource(id = R.string.privacy),
-                style = MaterialTheme.typography.bodySmall,
-                color = FooterTextColor
-            )
-            Text(
-                text = stringResource(id = R.string.terms),
-                style = MaterialTheme.typography.bodySmall,
-                color = FooterTextColor
-            )
-            Text(
-                text = stringResource(id = R.string.help),
-                style = MaterialTheme.typography.bodySmall,
-                color = FooterTextColor
-            )
-        }
-
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomStart)
-        )
     }
 }

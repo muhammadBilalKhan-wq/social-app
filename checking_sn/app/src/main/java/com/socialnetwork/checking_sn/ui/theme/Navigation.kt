@@ -12,6 +12,7 @@ import com.socialnetwork.checking_sn.core.presentation.util.FEED_GRAPH_ROUTE
 import com.socialnetwork.checking_sn.core.presentation.util.Screen
 import com.socialnetwork.checking_sn.feature_auth.presentation.login.LoginScreen
 import com.socialnetwork.checking_sn.feature_auth.presentation.register.RegisterScreen
+import com.socialnetwork.checking_sn.feature_auth.presentation.register.RegisterDetailsScreen
 import com.socialnetwork.checking_sn.feature_post.presentation.create_post.CreatePostScreen
 import com.socialnetwork.checking_sn.feature_post.presentation.feed.FeedScreen
 import com.socialnetwork.checking_sn.feature_post.presentation.feed.FeedViewModel
@@ -38,6 +39,9 @@ fun Navigation() {
             }
             composable(Screen.RegisterScreen.route) {
                 RegisterScreen(navController = navController)
+            }
+            composable(Screen.RegisterDetailsScreen.route) {
+                RegisterDetailsScreen(navController = navController)
             }
         }
         navigation(

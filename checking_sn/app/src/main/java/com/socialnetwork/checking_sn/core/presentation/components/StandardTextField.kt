@@ -2,6 +2,7 @@ package com.socialnetwork.checking_sn.core.presentation.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -20,10 +21,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.socialnetwork.checking_sn.core.util.UiText
+import com.socialnetwork.checking_sn.ui.theme.InputBackground
+import com.socialnetwork.checking_sn.ui.theme.LabelTextColor
 
 @Composable
 fun StandardTextField(
     text: String = "",
+    label: String = "",
     hint: String = "",
     error: UiText? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
@@ -38,6 +42,14 @@ fun StandardTextField(
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
+        if (label.isNotEmpty()) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                color = LabelTextColor,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+        }
         OutlinedTextField(
             value = text,
             onValueChange = {
@@ -73,8 +85,13 @@ fun StandardTextField(
                 }
             },
             maxLines = maxLines,
-            shape = RoundedCornerShape(25.dp),
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF7C3AED).copy(alpha = 0.3f), unfocusedBorderColor = Color.LightGray, focusedContainerColor = Color.White, unfocusedContainerColor = Color.White),
+            shape = RoundedCornerShape(50.dp), // Fully rounded
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.LightGray,
+                unfocusedBorderColor = Color.LightGray,
+                focusedContainerColor = InputBackground,
+                unfocusedContainerColor = InputBackground
+            ),
             textStyle = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 17.sp, fontWeight = FontWeight.Normal, color = Color(0xFF1D1D1F)),
             modifier = modifier.fillMaxWidth()
         )

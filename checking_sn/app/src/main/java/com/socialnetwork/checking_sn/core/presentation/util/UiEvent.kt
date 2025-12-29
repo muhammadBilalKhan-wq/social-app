@@ -7,5 +7,6 @@ sealed class UiEvent {
     object OnLogin: UiEvent()
     object OnRegister: UiEvent()
     object NavigateBack: UiEvent()
+    object NavigateToRegisterDetails: UiEvent()
     data class OnPostCreated(val description: String): UiEvent()
 }
