@@ -35,18 +35,27 @@ class AuthRepositoryImpl(
                 val error = response.error ?: "Login failed"
                 when (error) {
                     "Account does not exist", "Invalid email format" -> AuthResult(emailError = UiText.DynamicString(error))
-                    "Incorrect password" -> AuthResult(passwordError = UiText.DynamicString(error))
-                    else -> AuthResult(result = Resource.Error(UiText.DynamicString(error)))
+                    "Incorrect password", "Account is deactivated" -> AuthResult(passwordError = UiText.DynamicString(error))
+                    else -> AuthResult(emailError = UiText.DynamicString(error))
                 }
             } else {
-                // Handle HTTP error codes when no body or parsing failed
+                // Handle specific error codes with field errors if body not parsed
                 val errorMessage = when (apiResponse.code()) {
                     400 -> "Bad request"
                     401 -> "Incorrect password"
                     404 -> "Account does not exist"
                     else -> "Network error: ${apiResponse.code()}"
                 }
-                AuthResult(result = Resource.Error(UiText.DynamicString(errorMessage)))
+                if (apiResponse.code() in 400..499) {
+                    // Map specific codes to field errors
+                    when (apiResponse.code()) {
+                        404 -> AuthResult(emailError = UiText.DynamicString("Account does not exist"))
+                        401 -> AuthResult(passwordError = UiText.DynamicString("Incorrect password"))
+                        else -> AuthResult(emailError = UiText.DynamicString("Invalid input"))
+                    }
+                } else {
+                    AuthResult(result = Resource.Error(UiText.DynamicString(errorMessage)))
+                }
             }
         } catch (e: Exception) {
             Log.e("AuthRepository", "Login error", e)
@@ -74,10 +83,7 @@ class AuthRepositoryImpl(
                 AuthResult(result = Resource.Success(Unit))
             } else if (response != null && !response.success) {
                 val error = response.error ?: "Registration failed"
-                when (error) {
-                    "Invalid email format" -> AuthResult(emailError = UiText.DynamicString(error))
-                    else -> AuthResult(result = Resource.Error(UiText.DynamicString(error)))
-                }
+                AuthResult(emailError = UiText.DynamicString(error))
             } else {
                 val errorMessage = when (apiResponse.code()) {
                     400 -> "Bad request"
