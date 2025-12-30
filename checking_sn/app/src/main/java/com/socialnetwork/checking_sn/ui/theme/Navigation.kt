@@ -2,11 +2,11 @@
 package com.socialnetwork.checking_sn.ui.theme
 
 import androidx.compose.runtime.Composable
-<<<<<<< HEAD
+//<<<<<<< HEAD
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-=======
->>>>>>> parent of b8f2250 (Working Fine)
+//=======
+//>>>>>>> parent of b8f2250 (Working Fine)
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
