@@ -11,10 +11,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -26,40 +24,34 @@ fun FloatingAddButton(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-
     Surface(
         modifier = modifier
             .size(56.dp)
-            .graphicsLayer {
-                // Glassmorphism blur effect removed for compatibility
-                // Blur effects require Compose UI 1.4.0+ and Android 12+
-            }
+            .clip(CircleShape)
             .border(
                 width = 1.dp,
-                color = Color.White.copy(alpha = 0.1f), // Very low opacity white border
+                color = Color.White.copy(alpha = 0.1f),
                 shape = CircleShape
             )
             .clickable {
-                // Navigate to create content screen
                 navController.navigate(Screen.CreateContentScreen.route) {
                     launchSingleTop = true
                 }
             },
         shape = CircleShape,
-        shadowElevation = 4.dp, // Reduced elevation for softer shadow
-        color = Color.White.copy(alpha = 0.15f) // Semi-transparent white background
+        shadowElevation = 4.dp,
+        color = Color.White.copy(alpha = 0.15f)
     ) {
         Box(
             modifier = Modifier
-                .background(Color.Transparent) // No background fill - glass effect
+                .background(Color.Transparent)
                 .size(56.dp),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_add),
                 contentDescription = "Add",
-                tint = Color.White.copy(alpha = 0.9f), // Slightly transparent white for glass effect
+                tint = Color.White.copy(alpha = 0.9f),
                 modifier = Modifier.size(24.dp)
             )
         }

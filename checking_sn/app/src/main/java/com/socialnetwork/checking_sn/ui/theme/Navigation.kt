@@ -1,26 +1,13 @@
 
 package com.socialnetwork.checking_sn.ui.theme
 
-import androidx.compose.foundation.layout.Box
-//import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-//import androidx.compose.foundation.layout.fillMaxWidth
-//import androidx.compose.foundation.layout.navigationBarsPadding
-//import androidx.compose.foundation.layout.offset
-//import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.Alignment
-//import androidx.compose.ui.unit.dp
-//import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-//import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
@@ -45,11 +32,7 @@ import com.socialnetwork.checking_sn.feature_post.presentation.feed.FeedScreen
 import com.socialnetwork.checking_sn.feature_post.presentation.feed.FeedViewModel
 import com.socialnetwork.checking_sn.feature_shorts.presentation.shorts.ShortsScreen
 import com.socialnetwork.checking_sn.feature_splash.presentation.splash.SplashScreen
-//import com.socialnetwork.checking_sn.ui.components.BottomNavBar
-import com.socialnetwork.checking_sn.ui.components.CustomBottomBar
-//import com.socialnetwork.checking_sn.ui.components.FloatingAddButton
-
-
+import com.socialnetwork.checking_sn.ui.components.StandardScaffold
 
 @Composable
 fun Navigation(
@@ -58,10 +41,8 @@ fun Navigation(
     val navController = rememberNavController()
     val isLoggedIn by secureTokenManager.isLoggedIn.collectAsState(initial = false)
 
-    // Handle logout navigation
     androidx.compose.runtime.LaunchedEffect(isLoggedIn) {
         if (!isLoggedIn) {
-            // If not logged in and not already on auth screens, navigate to login
             val currentRoute = navController.currentDestination?.route
             if (currentRoute != null && !currentRoute.startsWith(AUTH_GRAPH_ROUTE) &&
                 currentRoute != Screen.AuthGate.route && currentRoute != Screen.SplashScreen.route) {
@@ -71,6 +52,7 @@ fun Navigation(
             }
         }
     }
+
     NavHost(
         navController = navController,
         startDestination = Screen.AuthGate.route
@@ -106,12 +88,10 @@ fun Navigation(
                 val value = backStackEntry.arguments?.getString("value") ?: ""
                 val registerViewModel = hiltViewModel<RegisterViewModel>()
 
-                // Set the appropriate field in the ViewModel based on type
                 when (type) {
                     "email" -> registerViewModel.onEvent(RegisterEvent.EnteredEmail(value))
                     "phone" -> registerViewModel.onEvent(RegisterEvent.EnteredPhoneNumber(value))
                 }
-                // Also set the selected option
                 registerViewModel.onEvent(RegisterEvent.SelectedOption(if (type == "email") "Email" else "Phone"))
 
                 RegisterDetailsScreen(navController = navController, viewModel = registerViewModel)
@@ -131,7 +111,7 @@ fun Navigation(
                 )
             }
             composable(Screen.CreatePostScreen.route) { backStackEntry ->
-                val parentEntry = remember(backStackEntry) {
+                val parentEntry = androidx.compose.runtime.remember(backStackEntry) {
                     navController.getBackStackEntry(Screen.FeedScreen.route)
                 }
                 val feedViewModel = hiltViewModel<FeedViewModel>(parentEntry)
@@ -148,39 +128,23 @@ fun Navigation(
             startDestination = Screen.HomeScreen.route
         ) {
             composable(Screen.HomeScreen.route) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    HomeScreen(modifier = Modifier.fillMaxSize())
-                    CustomBottomBar(
-                        navController = navController,
-                        modifier = Modifier.align(Alignment.BottomCenter)
-                    )
+                StandardScaffold(navController = navController) {
+                    HomeScreen()
                 }
             }
             composable(Screen.ShortsScreen.route) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    ShortsScreen(modifier = Modifier.fillMaxSize())
-                    CustomBottomBar(
-                        navController = navController,
-                        modifier = Modifier.align(Alignment.BottomCenter)
-                    )
+                StandardScaffold(navController = navController) {
+                    ShortsScreen()
                 }
             }
             composable(Screen.NotificationsScreen.route) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    NotificationsScreen(modifier = Modifier.fillMaxSize())
-                    CustomBottomBar(
-                        navController = navController,
-                        modifier = Modifier.align(Alignment.BottomCenter)
-                    )
+                StandardScaffold(navController = navController) {
+                    NotificationsScreen()
                 }
             }
             composable(Screen.MoreScreen.route) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    MoreScreen(modifier = Modifier.fillMaxSize())
-                    CustomBottomBar(
-                        navController = navController,
-                        modifier = Modifier.align(Alignment.BottomCenter)
-                    )
+                StandardScaffold(navController = navController) {
+                    MoreScreen()
                 }
             }
             composable(Screen.CreateContentScreen.route) {
