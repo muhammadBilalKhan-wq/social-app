@@ -1,16 +1,21 @@
 package com.socialnetwork.checking_sn.di
 
-import com.socialnetwork.checking_sn.core.data.manager.SecureTokenManager
-import com.socialnetwork.checking_sn.core.data.remote.AuthInterceptor
-import com.socialnetwork.checking_sn.core.data.remote.SecureHttpLoggingInterceptor
-import com.socialnetwork.checking_sn.core.data.remote.TokenAuthenticator
-import com.socialnetwork.checking_sn.core.util.EnvironmentConfig
+import android.app.Application
+import android.content.Context.MODE_PRIVATE
+import android.content.SharedPreferences
 import com.socialnetwork.checking_sn.feature_auth.data.remote.AuthApi
+import com.socialnetwork.checking_sn.feature_auth.data.repository.AuthRepositoryImpl
+import com.socialnetwork.checking_sn.feature_auth.domain.repository.AuthRepository
+import com.socialnetwork.checking_sn.feature_post.data.remote.PostApi
+import com.socialnetwork.checking_sn.feature_post.data.repository.PostRepositoryImpl
+import com.socialnetwork.checking_sn.feature_post.domain.repository.PostRepository
+import com.socialnetwork.checking_sn.core.util.Constants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -21,35 +26,32 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideTokenAuthenticator(
-        secureTokenManager: SecureTokenManager
-    ): TokenAuthenticator {
-        // Create a basic OkHttpClient for TokenAuthenticator to use for refresh requests
-        val basicClient = OkHttpClient.Builder().build()
-        return TokenAuthenticator(basicClient, secureTokenManager)
-    }
-
-    @Provides
-    @Singleton
-    fun provideAuthInterceptor(secureTokenManager: SecureTokenManager): AuthInterceptor {
-        return AuthInterceptor(secureTokenManager)
-    }
-
-    @Provides
-    @Singleton
-    fun provideOkHttpClient(
-        tokenAuthenticator: TokenAuthenticator,
-        authInterceptor: AuthInterceptor
-    ): OkHttpClient {
-        // TODO: Change to false for production release
-        val isDebug = true // Set to false for production builds
-        val loggingInterceptor = SecureHttpLoggingInterceptor.create(
-            isDebug = isDebug
+    fun provideSharedPref(app: Application): SharedPreferences {
+        return app.getSharedPreferences(
+            Constants.SHARED_PREF_NAME,
+            MODE_PRIVATE
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(sharedPreferences: SharedPreferences): OkHttpClient {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
         return OkHttpClient.Builder()
-            .authenticator(tokenAuthenticator)
-            .addInterceptor(authInterceptor)  // Clean auth header handling
             .addInterceptor(loggingInterceptor)
+            .addInterceptor {
+                val url = it.request().url.toString()
+                if (!url.contains("/api/auth/login/") && !url.contains("/api/auth/register/") && !url.contains("/api/auth/check_email/")) {
+                    val token = sharedPreferences.getString(Constants.KEY_JWT_TOKEN, "")
+                    val requestBuilder = it.request().newBuilder()
+                    if (!token.isNullOrEmpty()) {
+                        requestBuilder.addHeader("Authorization", "Bearer $token")
+                    }
+                }
+                it.proceed(it.request())
+            }
             .build()
     }
 
@@ -57,7 +59,7 @@ object AppModule {
     @Singleton
     fun provideAuthApi(okHttpClient: OkHttpClient): AuthApi {
         return Retrofit.Builder()
-            .baseUrl(EnvironmentConfig.baseUrl)
+            .baseUrl(AuthApi.BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

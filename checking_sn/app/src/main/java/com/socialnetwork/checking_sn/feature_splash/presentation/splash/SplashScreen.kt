@@ -1,8 +1,6 @@
 package com.socialnetwork.checking_sn.feature_splash.presentation.splash
 
 import androidx.compose.animation.core.*
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -17,34 +15,25 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
-import kotlinx.coroutines.flow.collectLatest
-
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.socialnetwork.checking_sn.R
-import com.socialnetwork.checking_sn.core.presentation.util.FEED_GRAPH_ROUTE
 import com.socialnetwork.checking_sn.core.presentation.util.Screen
 import com.socialnetwork.checking_sn.ui.theme.*
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SplashScreen(
-    navController: NavController,
-    viewModel: SplashViewModel = hiltViewModel()
+    navController: NavController
 ) {
     val pagerState = rememberPagerState(pageCount = { 3 })
     val currentPage by remember { derivedStateOf { pagerState.currentPage } }
@@ -68,86 +57,11 @@ fun SplashScreen(
         )
     }
 
-    // Floating bubbles animation
-    val anim1 = remember { Animatable(0f) }
-    val anim2 = remember { Animatable(0f) }
-    val anim3 = remember { Animatable(0f) }
-    val anim4 = remember { Animatable(0f) }
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            anim1.animateTo(1f, tween(5000, easing = LinearEasing))
-            anim1.animateTo(0f, tween(5000, easing = LinearEasing))
-        }
-    }
-    LaunchedEffect(Unit) {
-        while (true) {
-            anim2.animateTo(1f, tween(6000, easing = LinearEasing))
-            anim2.animateTo(0f, tween(6000, easing = LinearEasing))
-        }
-    }
-    LaunchedEffect(Unit) {
-        while (true) {
-            anim3.animateTo(1f, tween(7000, easing = LinearEasing))
-            anim3.animateTo(0f, tween(7000, easing = LinearEasing))
-        }
-    }
-    LaunchedEffect(Unit) {
-        while (true) {
-            anim4.animateTo(1f, tween(8000, easing = LinearEasing))
-            anim4.animateTo(0f, tween(8000, easing = LinearEasing))
-        }
-    }
-
-    // Handle navigation events from ViewModel
-    LaunchedEffect(viewModel) {
-        viewModel.eventFlow.collectLatest { event ->
-            when (event) {
-                is SplashEvent.NavigateToHome -> {
-                    if (event.isLoggedIn) {
-                        // Navigate to home screen
-                        navController.navigate(FEED_GRAPH_ROUTE) {
-                            popUpTo(Screen.SplashScreen.route) { inclusive = true }
-                        }
-                    } else {
-                        // Navigate to auth screens
-                        navController.navigate(Screen.LoginScreen.route) {
-                            popUpTo(Screen.SplashScreen.route) { inclusive = true }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Floating bubbles
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            drawCircle(
-                color = Color.Gray.copy(alpha = 0.05f),
-                radius = 40f,
-                center = Offset(100f, 300f + anim1.value * 300f)
-            )
-            drawCircle(
-                color = Color.Gray.copy(alpha = 0.03f),
-                radius = 60f,
-                center = Offset(300f, 500f + anim2.value * 400f)
-            )
-            drawCircle(
-                color = Color.Gray.copy(alpha = 0.04f),
-                radius = 50f,
-                center = Offset(500f, 200f + anim3.value * 350f)
-            )
-            drawCircle(
-                color = Color.Gray.copy(alpha = 0.02f),
-                radius = 70f,
-                center = Offset(700f, 400f + anim4.value * 450f)
-            )
-        }
 
         // Carousel with images - COMMENTED OUT
         /*
@@ -230,7 +144,6 @@ fun SplashScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 48.dp)
-                .offset(y = (-40).dp)
         ) {
             // Log In button
             Button(

@@ -14,15 +14,6 @@ class ValidatePhoneNumber {
             return UiText.DynamicString("Phone number cannot be empty")
         }
 
-        // First check basic length constraints (7-12 digits for international numbers)
-        val digitCount = phoneNumber.count { it.isDigit() }
-        if (digitCount < 7) {
-            return UiText.DynamicString("Phone number is too short")
-        }
-        if (digitCount > 12) {
-            return UiText.DynamicString("Phone number is too long")
-        }
-
         return try {
             // Parse the phone number with the country code
             val parsedNumber: PhoneNumber = phoneUtil.parse(phoneNumber, countryIsoCode)

@@ -31,16 +31,9 @@ fun TextInputField(
     placeholder: String = "",
     error: UiText? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
-    leadingIcon: @Composable (() -> Unit)? = null,
-    inputFilter: ((String) -> String)? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-
-    val filteredOnValueChange: (String) -> Unit = { newValue ->
-        val filteredValue = inputFilter?.invoke(newValue) ?: newValue
-        onValueChange(filteredValue)
-    }
 
     Column(modifier = modifier.fillMaxWidth()) {
         if (label != null) {
@@ -54,7 +47,7 @@ fun TextInputField(
 
         OutlinedTextField(
             value = value,
-            onValueChange = filteredOnValueChange,
+            onValueChange = onValueChange,
             placeholder = {
                 Text(
                     text = placeholder,
@@ -62,7 +55,6 @@ fun TextInputField(
                     color = Color.DarkGray
                 )
             },
-            leadingIcon = leadingIcon,
             isError = error != null,
             keyboardOptions = KeyboardOptions(
                 keyboardType = keyboardType,

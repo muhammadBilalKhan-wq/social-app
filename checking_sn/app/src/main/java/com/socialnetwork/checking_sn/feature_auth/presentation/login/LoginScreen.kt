@@ -17,12 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-
-
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.socialnetwork.checking_sn.core.presentation.components.PasswordInputField
@@ -79,8 +76,6 @@ fun LoginScreen(
                 .fillMaxSize()
                 .background(Color.White)
                 .padding(paddingValues)
-                .statusBarsPadding()
-                .imePadding()
         ) {
             // Background translucent shapes
             Box(modifier = Modifier.fillMaxSize()) {
@@ -115,22 +110,26 @@ fun LoginScreen(
                 )
             }
 
-            // Single scrollable column with keyboard awareness
-            val scrollState = rememberScrollState()
-
+            // Main content
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = Spacing.ScreenPaddingHorizontal, vertical = Spacing.ScreenPaddingVertical)
-                    .verticalScroll(scrollState),
+                    .verticalScroll(rememberScrollState())
+                    .imePadding(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                // Normal top spacing
                 Spacer(modifier = Modifier.height(Spacing.ExtraLarge))
 
-                // Additional spacing to move contents below
-                Spacer(modifier = Modifier.height(Spacing.ExtraLarge))
+                // Header
+                Text(
+                    text = "Welcome back!",
+                    style = MaterialTheme.typography.displayMedium,
+                    textAlign = TextAlign.Center,
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = Spacing.Large)
+                )
 
                 // Segmented Control
                 SegmentedToggle(
@@ -159,40 +158,23 @@ fun LoginScreen(
                         )
                     }
                     "Phone" -> {
-                        TextInputField(
-                            value = uiState.phoneNumber,
-                            onValueChange = { viewModel.onEvent(LoginEvent.EnteredPhoneNumber(it)) },
-                            label = "Phone Number",
-                            placeholder = "Enter phone number without country code",
-                            error = currentError,
-                            keyboardType = KeyboardType.Phone,
-                            inputFilter = { input ->
-                                // Allow only digits and spaces, but prevent country code patterns and limit length
-                                val filtered = input.filter { it.isDigit() || it.isWhitespace() }
-                                // Don't allow starting with + or common country code patterns
-                                if (filtered.startsWith("+") || filtered.matches(Regex("^\\d{1,3}[+\\s].*"))) {
-                                    "" // Reject input that looks like country codes
-                                } else {
-                                    // Limit to 12 digits max
-                                    val digitsOnly = filtered.filter { it.isDigit() }
-                                    if (digitsOnly.length > 12) {
-                                        filtered.dropLast(1) // Remove the last character if too many digits
-                                    } else {
-                                        filtered
-                                    }
+                        Column {
+                            CountryCodeSelector(
+                                selectedCountryCode = uiState.countryCode,
+                                selectedCountryIsoCode = uiState.countryIsoCode,
+                                onCountrySelected = { code, iso ->
+                                    viewModel.onEvent(LoginEvent.SelectedCountry(code, iso))
                                 }
-                            },
-                            leadingIcon = {
-                                CountryCodeSelector(
-                                    selectedCountryCode = uiState.countryCode,
-                                    selectedCountryIsoCode = uiState.countryIsoCode,
-                                    onCountrySelected = { code, iso ->
-                                        viewModel.onEvent(LoginEvent.SelectedCountry(code, iso))
-                                    },
-                                    compact = true
-                                )
-                            }
-                        )
+                            )
+                            TextInputField(
+                                value = uiState.phoneNumber,
+                                onValueChange = { viewModel.onEvent(LoginEvent.EnteredPhoneNumber(it)) },
+                                label = "Phone Number",
+                                placeholder = "Enter your phone number",
+                                error = currentError,
+                                keyboardType = KeyboardType.Phone
+                            )
+                        }
                     }
                 }
 
@@ -209,7 +191,7 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(Spacing.ExtraLarge))
 
-                // Log In button (in normal position after password field)
+                // Log In button
                 PrimaryButton(
                     text = "Log In",
                     onClick = { viewModel.onEvent(LoginEvent.Login) },
@@ -226,7 +208,6 @@ fun LoginScreen(
                         .clickable { /* TODO: Navigate to forgot password */ }
                 )
 
-                // Extra bottom spacing for scrolling comfort
                 Spacer(modifier = Modifier.height(Spacing.ExtraLarge))
             }
         }
