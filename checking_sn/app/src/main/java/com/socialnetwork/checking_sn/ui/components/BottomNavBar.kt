@@ -1,9 +1,7 @@
 package com.socialnetwork.checking_sn.ui.components
 
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
+import android.os.Build
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,24 +10,29 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.RenderEffect
+import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.socialnetwork.checking_sn.R
 import com.socialnetwork.checking_sn.core.presentation.util.Screen
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.SweepGradientShader
 import com.socialnetwork.checking_sn.ui.theme.MindesPurple
 
 data class BottomNavItem(
@@ -74,43 +77,40 @@ fun BottomNavBar(
         )
     )
 
-    val context = LocalContext.current
+    val glassmorphismModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        Modifier.graphicsLayer(
+            renderEffect = RenderEffect.createBlurEffect(
+                8f, 8f, android.graphics.Shader.TileMode.MIRROR
+            ).asComposeRenderEffect()
+        )
+    } else {
+        Modifier
+    }
 
-    Surface(
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .height(80.dp)
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .graphicsLayer {
-                // Glassmorphism blur effect removed for compatibility
-                // Blur effects require Compose UI 1.4.0+ and Android 12+
-            }
-            .border(
-                width = 1.dp,
-                color = Color.White.copy(alpha = 0.1f), // Very low opacity white border
-                shape = RoundedCornerShape(28.dp)
-            ),
-        shape = RoundedCornerShape(28.dp),
-        shadowElevation = 4.dp, // Reduced elevation for softer shadow
-        color = Color.White.copy(alpha = 0.15f) // Semi-transparent white background
+            .clip(RoundedCornerShape(28.dp))
+            .then(glassmorphismModifier)
+            .background(Color.White.copy(alpha = 0.15f))
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+            horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
             navItems.forEach { item ->
                 val isSelected = currentRoute == item.route
-                val backgroundColor = if (isSelected) MindesPurple else Color.Transparent
-                val iconTint = if (isSelected) Color.White else Color.Gray
+                val icon = if (isSelected) item.filledIcon else item.icon
+                val iconTint = if (isSelected) MindesPurple else Color.Gray
 
                 Box(
                     modifier = Modifier
                         .size(48.dp)
-                        .clip(CircleShape)
-                        .background(backgroundColor)
                         .clickable {
                             navController.navigate(item.route) {
                                 popUpTo(navController.graph.startDestinationId) {
@@ -123,12 +123,10 @@ fun BottomNavBar(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(
-                            id = if (isSelected) item.filledIcon else item.icon
-                        ),
+                        painter = painterResource(id = icon),
                         contentDescription = item.label,
                         tint = iconTint,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(28.dp)
                     )
                 }
             }
