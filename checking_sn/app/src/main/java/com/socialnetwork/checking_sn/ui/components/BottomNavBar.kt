@@ -1,5 +1,7 @@
 package com.socialnetwork.checking_sn.ui.components
 
+import android.graphics.RenderEffect
+import android.graphics.Shader
 import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,27 +14,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RenderEffect
 import androidx.compose.ui.graphics.asComposeRenderEffect
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.socialnetwork.checking_sn.R
 import com.socialnetwork.checking_sn.core.presentation.util.Screen
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.ShaderBrush
-import androidx.compose.ui.graphics.SweepGradientShader
 import com.socialnetwork.checking_sn.ui.theme.MindesPurple
 
 data class BottomNavItem(
@@ -80,7 +75,7 @@ fun BottomNavBar(
     val glassmorphismModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         Modifier.graphicsLayer(
             renderEffect = RenderEffect.createBlurEffect(
-                8f, 8f, android.graphics.Shader.TileMode.MIRROR
+                8f, 8f, Shader.TileMode.MIRROR
             ).asComposeRenderEffect()
         )
     } else {
