@@ -112,9 +112,20 @@ class RegisterViewModel @Inject constructor(
     }
 
     private fun register() {
+        val currentState = uiState.value
+
+        // Validate password locally first with strict validation
+        val passwordError = authUseCases.validatePassword(currentState.password, strictValidation = true)
+        if (passwordError != null) {
+            _uiState.update { it.copy(passwordError = passwordError) }
+            return
+        }
+
+        // Clear any previous password error and proceed with registration
+        _uiState.update { it.copy(passwordError = null) }
+
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, emailError = null, nameError = null, passwordError = null, phoneNumberError = null) }
-            val currentState = uiState.value
+            _uiState.update { it.copy(isLoading = true, emailError = null, nameError = null, phoneNumberError = null) }
             val (email, phone) = when (currentState.selectedOption) {
                 "Email" -> currentState.email to null
                 "Phone" -> null to currentState.phoneNumber

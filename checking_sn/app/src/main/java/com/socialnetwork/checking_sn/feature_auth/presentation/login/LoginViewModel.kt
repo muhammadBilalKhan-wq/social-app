@@ -50,9 +50,20 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun login() {
+        val currentState = uiState.value
+
+        // Validate password locally first with basic validation for login
+        val passwordError = authUseCases.validateLoginPassword(currentState.password)
+        if (passwordError != null) {
+            _uiState.update { it.copy(passwordError = passwordError) }
+            return
+        }
+
+        // Clear any previous password error
+        _uiState.update { it.copy(passwordError = null) }
+
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, emailError = null, phoneNumberError = null, passwordError = null) }
-            val currentState = uiState.value
+            _uiState.update { it.copy(isLoading = true, emailError = null, phoneNumberError = null) }
 
             // Validate input based on selected option
             val validationError = when (currentState.selectedOption) {
@@ -82,7 +93,7 @@ class LoginViewModel @Inject constructor(
 
             val identifier = when (currentState.selectedOption) {
                 "Email" -> currentState.email
-                "Phone" -> currentState.phoneNumber
+                "Phone" -> currentState.countryCode + currentState.phoneNumber
                 else -> currentState.email
             }
 

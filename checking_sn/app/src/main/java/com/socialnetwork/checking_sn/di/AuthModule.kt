@@ -1,7 +1,9 @@
 package com.socialnetwork.checking_sn.di
 
 import android.content.Context
-import com.socialnetwork.checking_sn.core.data.manager.AuthManager
+import com.socialnetwork.checking_sn.core.data.manager.SecureTokenManager
+import com.socialnetwork.checking_sn.core.data.remote.SecureHttpLoggingInterceptor
+import com.socialnetwork.checking_sn.core.data.remote.TokenAuthenticator
 import com.socialnetwork.checking_sn.core.domain.use_case.ValidateEmail
 import com.socialnetwork.checking_sn.core.domain.use_case.ValidatePassword
 import com.socialnetwork.checking_sn.core.domain.use_case.ValidatePhoneNumber
@@ -14,12 +16,15 @@ import com.socialnetwork.checking_sn.feature_auth.domain.use_case.check_email_av
 import com.socialnetwork.checking_sn.feature_auth.domain.use_case.check_phone_available.CheckPhoneAvailableUseCase
 import com.socialnetwork.checking_sn.feature_auth.domain.use_case.get_me.GetMeUseCase
 import com.socialnetwork.checking_sn.feature_auth.domain.use_case.login.LoginUseCase
+import com.socialnetwork.checking_sn.feature_auth.domain.use_case.logout.LogoutUseCase
+import com.socialnetwork.checking_sn.feature_auth.domain.use_case.refresh_token.RefreshTokenUseCase
 import com.socialnetwork.checking_sn.feature_auth.domain.use_case.register.RegisterUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
 import javax.inject.Singleton
 
 
@@ -31,13 +36,15 @@ object AuthModule {
 
     @Provides
     @Singleton
-    fun provideAuthManager(@ApplicationContext context: Context): AuthManager {
-        return AuthManager(context)
+    fun provideSecureTokenManager(@ApplicationContext context: Context): SecureTokenManager {
+        return SecureTokenManager(context)
     }
+
+
 
     @Provides
     @Singleton
-    fun provideAuthRepository(authManager: AuthManager, authApi: AuthApi): AuthRepository {
+    fun provideAuthRepository(authManager: SecureTokenManager, authApi: AuthApi): AuthRepository {
         return AuthRepositoryImpl(authManager, authApi)
     }
 
@@ -51,6 +58,8 @@ object AuthModule {
             validatePhoneNumber = ValidatePhoneNumber(),
             login = LoginUseCase(repository, ValidatePassword()),
             register = RegisterUseCase(repository, ValidateEmail(), ValidateUsername(), ValidatePassword(), ValidatePhoneNumber()),
+            logout = LogoutUseCase(repository),
+            refreshToken = RefreshTokenUseCase(repository),
             getMe = GetMeUseCase(repository),
             checkEmailAvailable = CheckEmailAvailableUseCase(repository),
             checkPhoneAvailable = CheckPhoneAvailableUseCase(repository)

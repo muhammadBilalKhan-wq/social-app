@@ -44,7 +44,7 @@ fun RegisterScreen(
                     val state = viewModel.uiState.value
                     val (type, value) = when (state.selectedOption) {
                         "Email" -> "email" to state.email
-                        "Phone" -> "phone" to state.phoneNumber
+                        "Phone" -> "phone" to (state.countryCode + state.phoneNumber)
                         else -> "email" to state.email
                     }
                     navController.navigate(Screen.RegisterDetailsScreen.createRoute(type, value))
@@ -144,23 +144,40 @@ fun RegisterScreen(
                     )
                 }
                 "Phone" -> {
-                    Column {
-                        CountryCodeSelector(
-                            selectedCountryCode = uiState.countryCode,
-                            selectedCountryIsoCode = uiState.countryIsoCode,
-                            onCountrySelected = { code, iso ->
-                                viewModel.onEvent(RegisterEvent.SelectedCountry(code, iso))
+                    TextInputField(
+                        value = uiState.phoneNumber,
+                        onValueChange = { viewModel.onEvent(RegisterEvent.EnteredPhoneNumber(it)) },
+                        label = "Phone Number",
+                        placeholder = "Enter phone number without country code",
+                        error = uiState.phoneNumberError,
+                        keyboardType = KeyboardType.Phone,
+                        inputFilter = { input ->
+                            // Allow only digits and spaces, but prevent country code patterns and limit length
+                            val filtered = input.filter { it.isDigit() || it.isWhitespace() }
+                            // Don't allow starting with + or common country code patterns
+                            if (filtered.startsWith("+") || filtered.matches(Regex("^\\d{1,3}[+\\s].*"))) {
+                                "" // Reject input that looks like country codes
+                            } else {
+                                // Limit to 12 digits max
+                                val digitsOnly = filtered.filter { it.isDigit() }
+                                if (digitsOnly.length > 12) {
+                                    filtered.dropLast(1) // Remove the last character if too many digits
+                                } else {
+                                    filtered
+                                }
                             }
-                        )
-                        TextInputField(
-                            value = uiState.phoneNumber,
-                            onValueChange = { viewModel.onEvent(RegisterEvent.EnteredPhoneNumber(it)) },
-                            label = "Phone Number",
-                            placeholder = "Enter your phone number",
-                            error = uiState.phoneNumberError,
-                            keyboardType = KeyboardType.Phone
-                        )
-                    }
+                        },
+                        leadingIcon = {
+                            CountryCodeSelector(
+                                selectedCountryCode = uiState.countryCode,
+                                selectedCountryIsoCode = uiState.countryIsoCode,
+                                onCountrySelected = { code, iso ->
+                                    viewModel.onEvent(RegisterEvent.SelectedCountry(code, iso))
+                                },
+                                compact = true
+                            )
+                        }
+                    )
                 }
             }
 

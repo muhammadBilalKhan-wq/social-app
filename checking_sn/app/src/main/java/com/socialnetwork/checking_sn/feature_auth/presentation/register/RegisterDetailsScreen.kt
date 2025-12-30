@@ -24,8 +24,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.socialnetwork.checking_sn.core.presentation.components.TextInputField
 import com.socialnetwork.checking_sn.core.presentation.components.PasswordInputField
+import com.socialnetwork.checking_sn.core.presentation.util.Screen
 import com.socialnetwork.checking_sn.core.presentation.util.UiEvent
 import com.socialnetwork.checking_sn.core.presentation.util.AUTH_GRAPH_ROUTE
 import com.socialnetwork.checking_sn.core.presentation.util.FEED_GRAPH_ROUTE
@@ -36,6 +38,22 @@ fun RegisterDetailsScreen(
     viewModel: RegisterViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val type = navBackStackEntry?.arguments?.getString("type") ?: ""
+    val value = navBackStackEntry?.arguments?.getString("value") ?: ""
+
+    // Initialize the form based on navigation arguments
+    LaunchedEffect(type, value) {
+        if (type.isNotEmpty() && value.isNotEmpty()) {
+            val option = if (type == "email") "Email" else "Phone"
+            viewModel.onEvent(RegisterEvent.SelectedOption(option))
+            if (type == "email") {
+                viewModel.onEvent(RegisterEvent.EnteredEmail(value))
+            } else {
+                viewModel.onEvent(RegisterEvent.EnteredPhoneNumber(value))
+            }
+        }
+    }
 
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collect { event ->
@@ -102,13 +120,8 @@ fun RegisterDetailsScreen(
             Spacer(modifier = Modifier.weight(0.2f))
 
             // Title (positioned like "Enter phone or email" in previous screen)
-            val registrationMethod = when (uiState.selectedOption) {
-                "Email" -> "with ${uiState.email}"
-                "Phone" -> "with ${uiState.phoneNumber}"
-                else -> ""
-            }
             Text(
-                text = "Next, create an account $registrationMethod",
+                text = "Next, create an account",
                 style = TextStyle(
                     fontFamily = FontFamily.SansSerif,
                     fontWeight = FontWeight.Bold,

@@ -10,7 +10,7 @@ SECRET_KEY = 'django-insecure-dev-key-change-in-production'
 
 ALLOWED_HOSTS = ['*']  # Allow all hosts for local development
 
-# Use SQLite for development (switch to PostgreSQL for Supabase in production)
+# Use SQLite for development
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

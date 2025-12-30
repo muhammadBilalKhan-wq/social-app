@@ -43,7 +43,8 @@ fun CountryCodeSelector(
     selectedCountryCode: String,
     selectedCountryIsoCode: String,
     onCountrySelected: (String, String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    compact: Boolean = false
 ) {
     var showCountryPicker by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
@@ -91,37 +92,73 @@ fun CountryCodeSelector(
         allCountries.find { it.isoCode == selectedCountryIsoCode }
     }
 
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(Spacing.InputFieldHeight)
-            .clickable { showCountryPicker = true },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Country code display
-        Text(
-            text = selectedCountryCode,
-            style = MaterialTheme.typography.titleMedium,
-            color = Color.Black,
-            modifier = Modifier.padding(end = Spacing.Small)
-        )
+    if (compact) {
+        // Compact layout for text field leading icon
+        Row(
+            modifier = modifier
+                .clickable { showCountryPicker = true }
+                .padding(horizontal = Spacing.Small),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Country flag (smaller)
+            selectedCountry?.let { country ->
+                Text(
+                    text = country.flag,
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(end = Spacing.ExtraSmall)
+                )
+            }
 
-        // Country flag
-        selectedCountry?.let { country ->
+            // Country code display (smaller)
             Text(
-                text = country.flag,
-                fontSize = 20.sp,
-                modifier = Modifier.padding(end = Spacing.Small)
+                text = selectedCountryCode,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black
+            )
+
+            // Separator
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier
+                    .width(1.dp)
+                    .height(16.dp)
+                    .background(Color.Gray.copy(alpha = 0.3f))
+                    .padding(start = Spacing.Small)
             )
         }
+    } else {
+        // Full layout for standalone use
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(Spacing.InputFieldHeight)
+                .clickable { showCountryPicker = true },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Country code display
+            Text(
+                text = selectedCountryCode,
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.Black,
+                modifier = Modifier.padding(end = Spacing.Small)
+            )
 
-        // Separator
-        androidx.compose.foundation.layout.Box(
-            modifier = Modifier
-                .width(1.dp)
-                .height(24.dp)
-                .background(Color.Gray.copy(alpha = 0.3f))
-        )
+            // Country flag
+            selectedCountry?.let { country ->
+                Text(
+                    text = country.flag,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(end = Spacing.Small)
+                )
+            }
+
+            // Separator
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier
+                    .width(1.dp)
+                    .height(24.dp)
+                    .background(Color.Gray.copy(alpha = 0.3f))
+            )
+        }
     }
 
     if (showCountryPicker) {
