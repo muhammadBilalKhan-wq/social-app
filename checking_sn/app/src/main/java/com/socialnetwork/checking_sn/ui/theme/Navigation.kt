@@ -33,6 +33,7 @@ import com.socialnetwork.checking_sn.feature_auth.presentation.register.Register
 import com.socialnetwork.checking_sn.feature_auth.presentation.register.RegisterScreen
 import com.socialnetwork.checking_sn.feature_auth.presentation.register.RegisterViewModel
 import com.socialnetwork.checking_sn.feature_authgate.presentation.authgate.AuthGateScreen
+import com.socialnetwork.checking_sn.feature_comments.presentation.comments.CommentsScreen
 import com.socialnetwork.checking_sn.feature_create.presentation.create.CreateContentScreen
 import com.socialnetwork.checking_sn.feature_home.presentation.home.HomeScreen
 import com.socialnetwork.checking_sn.feature_more.presentation.more.MoreScreen
@@ -44,6 +45,7 @@ import com.socialnetwork.checking_sn.feature_post.presentation.feed.FeedViewMode
 import com.socialnetwork.checking_sn.feature_shorts.presentation.shorts.ShortsScreen
 import com.socialnetwork.checking_sn.feature_splash.presentation.splash.SplashScreen
 import com.socialnetwork.checking_sn.feature_search.presentation.search.SearchScreen
+import com.socialnetwork.checking_sn.feature_search.presentation.search.AppBackgroundColor
 import com.socialnetwork.checking_sn.ui.components.BottomNavigationBar
 import com.socialnetwork.checking_sn.ui.components.TopNavigationBar
 
@@ -53,7 +55,7 @@ fun Navigation(
     secureTokenManager: SecureTokenManager
 ) {
     val navController = rememberNavController()
-    val isLoggedIn by secureTokenManager.isLoggedIn.collectAsState(initial = false)
+    val isLoggedIn by secureTokenManager.isLoggedIn.collectAsState(initial = true)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -96,7 +98,7 @@ fun Navigation(
     // Determine selected tab based on current route
     val selectedTab = remember(currentRoute) {
         when (currentRoute) {
-            Screen.HomeScreen.route -> "home"
+            Screen.HomeScreen.route, Screen.FeedScreen.route -> "home"
             Screen.ShortsScreen.route -> "shorts"
             Screen.NotificationsScreen.route -> "notifications"
             Screen.MoreScreen.route -> "more"
@@ -104,12 +106,14 @@ fun Navigation(
         }
     }
 
-    Scaffold { paddingValues ->
+    Scaffold(
+        containerColor = AppBackgroundColor
+    ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
             Box(modifier = Modifier.padding(paddingValues)) {
                 NavHost(
                     navController = navController,
-                    startDestination = HOME_GRAPH_ROUTE
+                    startDestination = FEED_GRAPH_ROUTE
                 ) {
                 composable(Screen.AuthGate.route) {
                     AuthGateScreen(navController = navController)
@@ -163,6 +167,9 @@ fun Navigation(
                             onNavigateToCreatePost = {
                                 navController.navigate(Screen.CreatePostScreen.route)
                             },
+                            onNavigateToComments = { postId ->
+                                navController.navigate(Screen.CommentsScreen.createRoute(postId))
+                            },
                             onSearchClick = { /* TODO */ },
                             onProfileClick = { /* TODO */ },
                             onSettingsClick = { /* TODO */ },
@@ -187,7 +194,12 @@ fun Navigation(
                     startDestination = Screen.HomeScreen.route
                 ) {
                     composable(Screen.HomeScreen.route) {
-                        HomeScreen(modifier = Modifier.fillMaxSize())
+                        HomeScreen(
+                            modifier = Modifier.fillMaxSize(),
+                            onNavigateToComments = { postId ->
+                                navController.navigate(Screen.CommentsScreen.createRoute(postId))
+                            }
+                        )
                     }
                     composable(Screen.ShortsScreen.route) {
                         ShortsScreen(modifier = Modifier.fillMaxSize())
@@ -216,6 +228,20 @@ fun Navigation(
                 }
                 composable(Screen.ProfileScreen.route) {
                     androidx.compose.material3.Text("Profile Screen")
+                }
+                composable(
+                    route = Screen.CommentsScreen.route,
+                    arguments = listOf(
+                        navArgument("postId") { type = NavType.StringType }
+                    )
+                ) { backStackEntry ->
+                    val postId = backStackEntry.arguments?.getString("postId") ?: ""
+                    CommentsScreen(
+                        postId = postId,
+                        onNavigateBack = {
+                            navController.navigateUp()
+                        }
+                    )
                 }
             }
             }

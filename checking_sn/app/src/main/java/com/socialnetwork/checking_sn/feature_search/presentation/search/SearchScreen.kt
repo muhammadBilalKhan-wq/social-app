@@ -53,6 +53,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.socialnetwork.checking_sn.ui.theme.Spacing
 
+// App background color to match HomeScreen
+val AppBackgroundColor = Color(0xFFF5F5F7)
+
 // Data classes for search results
 data class SearchResult(
     val id: String,
@@ -132,12 +135,13 @@ fun SearchScreen(
                 )
             )
         },
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = AppBackgroundColor
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .background(AppBackgroundColor)
         ) {
             // Search input with clear button
             OutlinedTextField(

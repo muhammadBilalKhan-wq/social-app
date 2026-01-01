@@ -18,6 +18,9 @@ sealed class Screen(val route: String) {
     object MoreScreen : Screen("more_screen")
     object SearchScreen : Screen("search_screen")
     object ProfileScreen : Screen("profile_screen")
+    object CommentsScreen : Screen("comments/{postId}") {
+        fun createRoute(postId: String) = "comments/$postId"
+    }
 }
 
 const val AUTH_GRAPH_ROUTE = "auth_graph"

@@ -128,4 +128,7 @@ dependencies {
 
     // Security crypto for encrypted shared preferences
     implementation(libs.androidx.security.crypto)
+
+    // Coil for image loading
+    implementation(libs.coil.compose)
 }
