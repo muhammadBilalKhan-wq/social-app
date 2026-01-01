@@ -1,6 +1,15 @@
 package com.socialnetwork.checking_sn.feature_splash.presentation.splash
 
 import androidx.compose.animation.core.*
+<<<<<<< HEAD
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+=======
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -20,122 +29,129 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+>>>>>>> origin/main
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+<<<<<<< HEAD
+import com.socialnetwork.checking_sn.core.presentation.util.FEED_GRAPH_ROUTE
+=======
 import com.socialnetwork.checking_sn.R
+>>>>>>> origin/main
 import com.socialnetwork.checking_sn.core.presentation.util.Screen
-import com.socialnetwork.checking_sn.ui.theme.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
+/**
+ * Sample suspend function to check for a valid stored token.
+ * In a real app, this would check secure storage for a JWT token
+ * and validate it with your backend API.
+ */
+suspend fun checkToken(): Boolean {
+    // Simulate network/database delay
+    delay(500L) // Reduced for faster testing
+
+    // In real implementation, check:
+    // 1. Retrieve token from secure storage
+    // 2. Validate token format
+    // 3. Optionally verify with backend
+    // 4. Return true if valid, false otherwise
+
+    // For demo: always return false to go to auth (easier testing)
+    return false
+}
+
 @Composable
+<<<<<<< HEAD
+fun SplashScreen(navController: NavController) {
+    val coroutineScope = rememberCoroutineScope()
+=======
 fun SplashScreen(
     navController: NavController
 ) {
     val pagerState = rememberPagerState(pageCount = { 3 })
     val currentPage by remember { derivedStateOf { pagerState.currentPage } }
+>>>>>>> origin/main
 
-    // Logo animation
-    val logoScale = remember { Animatable(0f) }
-    val logoAlpha = remember { Animatable(0f) }
+    // Logo animation state
+    var logoVisible by remember { mutableStateOf(false) }
+    val logoScale by animateFloatAsState(
+        targetValue = if (logoVisible) 1f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "logoScale"
+    )
+    val logoAlpha by animateFloatAsState(
+        targetValue = if (logoVisible) 1f else 0f,
+        animationSpec = tween(durationMillis = 800, easing = EaseOutCubic),
+        label = "logoAlpha"
+    )
 
+    // Start logo animation when screen appears
     LaunchedEffect(Unit) {
-        // Start both animations simultaneously
-        logoAlpha.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(durationMillis = 1000, easing = EaseOutCubic)
-        )
-        logoScale.animateTo(
-            targetValue = 1f,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessLow
-            )
-        )
+        logoVisible = true
     }
 
+<<<<<<< HEAD
+    // Perform token check asynchronously
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            try {
+                val hasValidToken = checkToken()
+
+                if (hasValidToken) {
+                    // Navigate to Home screen (Feed)
+                    navController.navigate(FEED_GRAPH_ROUTE) {
+                        popUpTo(Screen.SplashScreen.route) { inclusive = true }
+                    }
+                } else {
+                    // Navigate to Auth screen
+                    navController.navigate(Screen.AuthScreen.route) {
+                        popUpTo(Screen.SplashScreen.route) { inclusive = true }
+                    }
+                }
+            } catch (e: Exception) {
+                // On error, default to auth screen
+                navController.navigate(Screen.AuthScreen.route) {
+                    popUpTo(Screen.SplashScreen.route) { inclusive = true }
+                }
+            }
+        }
+    }
+
+    // Full-screen white background
+=======
+>>>>>>> origin/main
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
     ) {
+<<<<<<< HEAD
+        // Centered app logo with animation
+        Text(
+            text = "Checking SN",
+            style = MaterialTheme.typography.headlineLarge,
+            textAlign = TextAlign.Center,
+=======
 
         // Carousel with images - COMMENTED OUT
         /*
         Column(
+>>>>>>> origin/main
             modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.Center)
-                .offset(y = (-40).dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(470.dp)
-            ) { page ->
-                val imageRes = when (page) {
-                    0 -> R.drawable.onboarding_slide1
-                    1 -> R.drawable.onboarding_slide2
-                    2 -> R.drawable.onboarding_slide3
-                    else -> R.drawable.onboarding_slide1
-                }
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = imageRes),
-                        contentDescription = "Onboarding slide ${page + 1}",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(450.dp)
-                            .clip(RoundedCornerShape(16.dp)),
-                        contentScale = ContentScale.Fit
-                    )
-                }
-            }
-
-            // Dynamic page indicator dots
-            Row(
-                modifier = Modifier.padding(top = 1.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                repeat(3) { index ->
-                    Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .background(
-                                color = if (index == currentPage)
-                                    Color.Black.copy(alpha = 0.8f)
-                                else
-                                    Color.Gray.copy(alpha = 0.3f),
-                                shape = CircleShape
-                            )
-                    )
-                }
-            }
-        }
-        */
-
-        // Logo at top center (drawn after carousel so it's on top)
-        Image(
-            painter = painterResource(id = R.drawable.app_logo),
-            contentDescription = "App Logo",
-            modifier = Modifier
-                .size(250.dp)
-                .align(Alignment.TopCenter)
-                .padding(top = 65.dp)
                 .graphicsLayer(
-                    scaleX = logoScale.value,
-                    scaleY = logoScale.value,
-                    alpha = logoAlpha.value
+                    scaleX = logoScale,
+                    scaleY = logoScale,
+                    alpha = logoAlpha
                 )
         )
+<<<<<<< HEAD
+=======
 
         // Buttons at bottom center
         Column(
@@ -187,5 +203,6 @@ fun SplashScreen(
                 )
             }
         }
+>>>>>>> origin/main
     }
 }

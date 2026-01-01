@@ -17,17 +17,66 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Limit ABIs for smaller APK size
+        ndk {
+            abiFilters.add("armeabi-v7a")
+            abiFilters.add("arm64-v8a")
+            abiFilters.add("x86")
+            abiFilters.add("x86_64")
+        }
     }
 
     buildTypes {
+<<<<<<< HEAD
+        debug {
+            buildConfigField("String", "BASE_URL", "\"http://192.168.1.32:8000/\"")
+            buildConfigField("String", "ENVIRONMENT", "\"DEBUG\"")
+        }
+        release {
+            buildConfigField("String", "BASE_URL", "\"https://api.checking-sn.com/\"")
+            buildConfigField("String", "ENVIRONMENT", "\"PRODUCTION\"")
+            isMinifyEnabled = true
+            isShrinkResources = true
+=======
         release {
             isMinifyEnabled = false
+>>>>>>> origin/main
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
     }
+<<<<<<< HEAD
+
+    // Flavor dimensions are required for product flavors
+    flavorDimensions += "environment"
+
+    // Product flavors for different environments
+    // Usage:
+    // - Dev: ./gradlew assembleDevDebug (connects to local backend)
+    // - Staging: ./gradlew assembleStagingRelease (connects to staging backend)
+    // - Prod: ./gradlew assembleProdRelease (connects to production backend)
+    productFlavors {
+        create("dev") {
+            buildConfigField("String", "BASE_URL", "\"http://192.168.1.32:8000/\"")
+            buildConfigField("String", "ENVIRONMENT", "\"DEVELOPMENT\"")
+            dimension = "environment"
+        }
+        create("staging") {
+            buildConfigField("String", "BASE_URL", "\"https://api-staging.checking-sn.com/\"")
+            buildConfigField("String", "ENVIRONMENT", "\"STAGING\"")
+            dimension = "environment"
+        }
+        create("prod") {
+            buildConfigField("String", "BASE_URL", "\"https://api.checking-sn.com/\"")
+            buildConfigField("String", "ENVIRONMENT", "\"PRODUCTION\"")
+            dimension = "environment"
+        }
+    }
+=======
+>>>>>>> origin/main
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -78,9 +127,18 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    // Material Icons
-    implementation("androidx.compose.material:material-icons-extended:1.6.0")
+    // Material Icons Core - needed for password visibility and other icons
+    implementation(libs.androidx.compose.material.icons.core)
 
     // Phone number validation
     implementation("com.googlecode.libphonenumber:libphonenumber:8.13.25")
+<<<<<<< HEAD
+
+    // Security crypto for encrypted shared preferences
+    implementation(libs.androidx.security.crypto)
+
+    // Coil for image loading
+    implementation(libs.coil.compose)
+=======
+>>>>>>> origin/main
 }
