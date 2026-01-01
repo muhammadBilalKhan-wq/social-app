@@ -1,278 +1,110 @@
 package com.socialnetwork.checking_sn.feature_splash.presentation.splash
 
 import androidx.compose.animation.core.*
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.remember
-import kotlinx.coroutines.flow.collectLatest
-
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Canvas
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.socialnetwork.checking_sn.R
 import com.socialnetwork.checking_sn.core.presentation.util.FEED_GRAPH_ROUTE
 import com.socialnetwork.checking_sn.core.presentation.util.Screen
-import com.socialnetwork.checking_sn.ui.theme.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
+/**
+ * Sample suspend function to check for a valid stored token.
+ * In a real app, this would check secure storage for a JWT token
+ * and validate it with your backend API.
+ */
+suspend fun checkToken(): Boolean {
+    // Simulate network/database delay
+    delay(500L) // Reduced for faster testing
+
+    // In real implementation, check:
+    // 1. Retrieve token from secure storage
+    // 2. Validate token format
+    // 3. Optionally verify with backend
+    // 4. Return true if valid, false otherwise
+
+    // For demo: always return false to go to auth (easier testing)
+    return false
+}
+
 @Composable
-fun SplashScreen(
-    navController: NavController,
-    viewModel: SplashViewModel = hiltViewModel()
-) {
-    val pagerState = rememberPagerState(pageCount = { 3 })
-    val currentPage by remember { derivedStateOf { pagerState.currentPage } }
+fun SplashScreen(navController: NavController) {
+    val coroutineScope = rememberCoroutineScope()
 
-    // Logo animation
-    val logoScale = remember { Animatable(0f) }
-    val logoAlpha = remember { Animatable(0f) }
+    // Logo animation state
+    var logoVisible by remember { mutableStateOf(false) }
+    val logoScale by animateFloatAsState(
+        targetValue = if (logoVisible) 1f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "logoScale"
+    )
+    val logoAlpha by animateFloatAsState(
+        targetValue = if (logoVisible) 1f else 0f,
+        animationSpec = tween(durationMillis = 800, easing = EaseOutCubic),
+        label = "logoAlpha"
+    )
 
+    // Start logo animation when screen appears
     LaunchedEffect(Unit) {
-        // Start both animations simultaneously
-        logoAlpha.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(durationMillis = 1000, easing = EaseOutCubic)
-        )
-        logoScale.animateTo(
-            targetValue = 1f,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessLow
-            )
-        )
+        logoVisible = true
     }
 
-    // Floating bubbles animation
-    val anim1 = remember { Animatable(0f) }
-    val anim2 = remember { Animatable(0f) }
-    val anim3 = remember { Animatable(0f) }
-    val anim4 = remember { Animatable(0f) }
+    // Perform token check asynchronously
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            try {
+                val hasValidToken = checkToken()
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            anim1.animateTo(1f, tween(5000, easing = LinearEasing))
-            anim1.animateTo(0f, tween(5000, easing = LinearEasing))
-        }
-    }
-    LaunchedEffect(Unit) {
-        while (true) {
-            anim2.animateTo(1f, tween(6000, easing = LinearEasing))
-            anim2.animateTo(0f, tween(6000, easing = LinearEasing))
-        }
-    }
-    LaunchedEffect(Unit) {
-        while (true) {
-            anim3.animateTo(1f, tween(7000, easing = LinearEasing))
-            anim3.animateTo(0f, tween(7000, easing = LinearEasing))
-        }
-    }
-    LaunchedEffect(Unit) {
-        while (true) {
-            anim4.animateTo(1f, tween(8000, easing = LinearEasing))
-            anim4.animateTo(0f, tween(8000, easing = LinearEasing))
-        }
-    }
-
-    // Handle navigation events from ViewModel
-    LaunchedEffect(viewModel) {
-        viewModel.eventFlow.collectLatest { event ->
-            when (event) {
-                is SplashEvent.NavigateToHome -> {
-                    if (event.isLoggedIn) {
-                        // Navigate to home screen
-                        navController.navigate(FEED_GRAPH_ROUTE) {
-                            popUpTo(Screen.SplashScreen.route) { inclusive = true }
-                        }
-                    } else {
-                        // Navigate to auth screens
-                        navController.navigate(Screen.LoginScreen.route) {
-                            popUpTo(Screen.SplashScreen.route) { inclusive = true }
-                        }
+                if (hasValidToken) {
+                    // Navigate to Home screen (Feed)
+                    navController.navigate(FEED_GRAPH_ROUTE) {
+                        popUpTo(Screen.SplashScreen.route) { inclusive = true }
                     }
+                } else {
+                    // Navigate to Auth screen
+                    navController.navigate(Screen.AuthScreen.route) {
+                        popUpTo(Screen.SplashScreen.route) { inclusive = true }
+                    }
+                }
+            } catch (e: Exception) {
+                // On error, default to auth screen
+                navController.navigate(Screen.AuthScreen.route) {
+                    popUpTo(Screen.SplashScreen.route) { inclusive = true }
                 }
             }
         }
     }
 
+    // Full-screen white background
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
     ) {
-        // Floating bubbles
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            drawCircle(
-                color = Color.Gray.copy(alpha = 0.05f),
-                radius = 40f,
-                center = Offset(100f, 300f + anim1.value * 300f)
-            )
-            drawCircle(
-                color = Color.Gray.copy(alpha = 0.03f),
-                radius = 60f,
-                center = Offset(300f, 500f + anim2.value * 400f)
-            )
-            drawCircle(
-                color = Color.Gray.copy(alpha = 0.04f),
-                radius = 50f,
-                center = Offset(500f, 200f + anim3.value * 350f)
-            )
-            drawCircle(
-                color = Color.Gray.copy(alpha = 0.02f),
-                radius = 70f,
-                center = Offset(700f, 400f + anim4.value * 450f)
-            )
-        }
-
-        // Carousel with images - COMMENTED OUT
-        /*
-        Column(
+        // Centered app logo with animation
+        Text(
+            text = "Checking SN",
+            style = MaterialTheme.typography.headlineLarge,
+            textAlign = TextAlign.Center,
             modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.Center)
-                .offset(y = (-40).dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(470.dp)
-            ) { page ->
-                val imageRes = when (page) {
-                    0 -> R.drawable.onboarding_slide1
-                    1 -> R.drawable.onboarding_slide2
-                    2 -> R.drawable.onboarding_slide3
-                    else -> R.drawable.onboarding_slide1
-                }
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = imageRes),
-                        contentDescription = "Onboarding slide ${page + 1}",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(450.dp)
-                            .clip(RoundedCornerShape(16.dp)),
-                        contentScale = ContentScale.Fit
-                    )
-                }
-            }
-
-            // Dynamic page indicator dots
-            Row(
-                modifier = Modifier.padding(top = 1.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                repeat(3) { index ->
-                    Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .background(
-                                color = if (index == currentPage)
-                                    Color.Black.copy(alpha = 0.8f)
-                                else
-                                    Color.Gray.copy(alpha = 0.3f),
-                                shape = CircleShape
-                            )
-                    )
-                }
-            }
-        }
-        */
-
-        // Logo at top center (drawn after carousel so it's on top)
-        Image(
-            painter = painterResource(id = R.drawable.app_logo),
-            contentDescription = "App Logo",
-            modifier = Modifier
-                .size(250.dp)
-                .align(Alignment.TopCenter)
-                .padding(top = 65.dp)
                 .graphicsLayer(
-                    scaleX = logoScale.value,
-                    scaleY = logoScale.value,
-                    alpha = logoAlpha.value
+                    scaleX = logoScale,
+                    scaleY = logoScale,
+                    alpha = logoAlpha
                 )
         )
-
-        // Buttons at bottom center
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 48.dp)
-                .offset(y = (-40).dp)
-        ) {
-            // Log In button
-            Button(
-                onClick = {
-                    navController.navigate(Screen.LoginScreen.route)
-                },
-                modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .height(50.dp),
-                shape = RoundedCornerShape(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = SoftPeriwinkleBlue,
-                    contentColor = Color.White
-                )
-            ) {
-                Text(
-                    text = "Log In",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            // Sign Up button
-            Button(
-                onClick = {
-                    navController.navigate(Screen.RegisterScreen.route)
-                },
-                modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .height(50.dp),
-                shape = RoundedCornerShape(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = SoftLavender,
-                    contentColor = Color.White
-                )
-            ) {
-                Text(
-                    text = "Sign Up",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
     }
 }

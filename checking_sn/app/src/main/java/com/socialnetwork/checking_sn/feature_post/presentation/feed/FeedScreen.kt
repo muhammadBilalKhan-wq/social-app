@@ -16,7 +16,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.outlined.ChatBubbleOutline
+
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,12 +44,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.socialnetwork.checking_sn.core.domain.models.Post
+import com.socialnetwork.checking_sn.ui.components.TopNavigationBar
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 
 @Composable
 fun FeedScreen(
     onNavigateToCreatePost: () -> Unit,
+    onSearchClick: () -> Unit,
+    onProfileClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     viewModel: FeedViewModel
 ) {
     val state = viewModel.state.value

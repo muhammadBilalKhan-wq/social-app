@@ -17,17 +17,26 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Limit ABIs for smaller APK size
+        ndk {
+            abiFilters.add("armeabi-v7a")
+            abiFilters.add("arm64-v8a")
+            abiFilters.add("x86")
+            abiFilters.add("x86_64")
+        }
     }
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"http://192.168.1.6:8000/\"")
+            buildConfigField("String", "BASE_URL", "\"http://192.168.1.32:8000/\"")
             buildConfigField("String", "ENVIRONMENT", "\"DEBUG\"")
         }
         release {
             buildConfigField("String", "BASE_URL", "\"https://api.checking-sn.com/\"")
             buildConfigField("String", "ENVIRONMENT", "\"PRODUCTION\"")
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -45,7 +54,7 @@ android {
     // - Prod: ./gradlew assembleProdRelease (connects to production backend)
     productFlavors {
         create("dev") {
-            buildConfigField("String", "BASE_URL", "\"http://192.168.1.6:8000/\"")
+            buildConfigField("String", "BASE_URL", "\"http://192.168.1.32:8000/\"")
             buildConfigField("String", "ENVIRONMENT", "\"DEVELOPMENT\"")
             dimension = "environment"
         }
@@ -111,8 +120,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    // Material Icons
-    implementation("androidx.compose.material:material-icons-extended:1.6.0")
+    // Material Icons Core - needed for password visibility and other icons
+    implementation(libs.androidx.compose.material.icons.core)
 
     // Phone number validation
     implementation("com.googlecode.libphonenumber:libphonenumber:8.13.25")

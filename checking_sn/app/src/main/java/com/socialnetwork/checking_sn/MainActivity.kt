@@ -27,11 +27,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowCompat.getInsetsController(window, window.decorView).apply {
-            isAppearanceLightStatusBars = false
-            isAppearanceLightNavigationBars = false
+            isAppearanceLightStatusBars = true  // Dark icons on white background
+            isAppearanceLightNavigationBars = true  // Dark buttons on white background
         }
-        window.statusBarColor = android.graphics.Color.TRANSPARENT
-        window.navigationBarColor = android.graphics.Color.TRANSPARENT
+        // White system bars for clean look
+        window.statusBarColor = android.graphics.Color.WHITE
+        window.navigationBarColor = android.graphics.Color.WHITE
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
         }

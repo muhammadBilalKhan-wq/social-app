@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.socialnetwork.checking_sn.R
@@ -184,11 +185,11 @@ fun AuthScreen(
         */
 
         // Logo at top center (drawn after carousel so it's on top)
-        Image(
-            painter = painterResource(id = R.drawable.app_logo),
-            contentDescription = "App Logo",
+        Text(
+            text = "Checking SN",
+            style = MaterialTheme.typography.displayMedium,
+            textAlign = TextAlign.Center,
             modifier = Modifier
-                .size(250.dp)
                 .align(Alignment.TopCenter)
                 .padding(top = 65.dp)
                 .graphicsLayer(
