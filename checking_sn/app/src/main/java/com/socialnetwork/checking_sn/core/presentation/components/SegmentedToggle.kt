@@ -2,7 +2,6 @@ package com.socialnetwork.checking_sn.core.presentation.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -37,7 +36,6 @@ fun SegmentedToggle(
             .height(Spacing.TopBarHeight)
             .clip(SegmentedControlShape)
             .background(Color.White)
-            .border(1.dp, Color.Black.copy(alpha = 0.3f), SegmentedControlShape)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {

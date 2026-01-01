@@ -28,6 +28,7 @@ android {
     }
 
     buildTypes {
+<<<<<<< HEAD
         debug {
             buildConfigField("String", "BASE_URL", "\"http://192.168.1.32:8000/\"")
             buildConfigField("String", "ENVIRONMENT", "\"DEBUG\"")
@@ -37,12 +38,17 @@ android {
             buildConfigField("String", "ENVIRONMENT", "\"PRODUCTION\"")
             isMinifyEnabled = true
             isShrinkResources = true
+=======
+        release {
+            isMinifyEnabled = false
+>>>>>>> origin/main
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
     }
+<<<<<<< HEAD
 
     // Flavor dimensions are required for product flavors
     flavorDimensions += "environment"
@@ -69,6 +75,8 @@ android {
             dimension = "environment"
         }
     }
+=======
+>>>>>>> origin/main
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -78,7 +86,6 @@ android {
     }
     buildFeatures {
         compose = true
-        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = libs.versions.kotlinCompilerExtensionVersion.get()
@@ -125,10 +132,13 @@ dependencies {
 
     // Phone number validation
     implementation("com.googlecode.libphonenumber:libphonenumber:8.13.25")
+<<<<<<< HEAD
 
     // Security crypto for encrypted shared preferences
     implementation(libs.androidx.security.crypto)
 
     // Coil for image loading
     implementation(libs.coil.compose)
+=======
+>>>>>>> origin/main
 }

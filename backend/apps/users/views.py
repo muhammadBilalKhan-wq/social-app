@@ -4,24 +4,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenRefreshView, TokenBlacklistView
 from .models import User
 from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
-
-
-def _normalize_phone(phone):
-    """Normalize phone number by removing country codes, leading zeros, and non-digits."""
-    if phone:
-        # Remove country codes and non-digit characters
-        import re
-        # Remove +92, +1, etc. and any non-digit characters except the core number
-        phone = re.sub(r'^(\+92|92|\+1|1)?', '', phone)
-        # Remove any remaining non-digit characters
-        phone = re.sub(r'\D', '', phone)
-        # Remove leading zeros
-        phone = phone.lstrip('0')
-        return phone
-    return phone
 
 
 
@@ -78,16 +62,8 @@ def login_view(request):
         if '@' in identifier:
             user_obj = User.objects.get(email__iexact=identifier)
         else:
-            # Assume it's a phone number - find user by normalized phone
-            normalized_phone = _normalize_phone(identifier)
-            # Find user whose phone number, when normalized, matches
-            user_obj = None
-            for user in User.objects.exclude(phone__isnull=True).exclude(phone=''):
-                if _normalize_phone(user.phone) == normalized_phone:
-                    user_obj = user
-                    break
-            if user_obj is None:
-                raise User.DoesNotExist()
+            # Assume it's a phone number
+            user_obj = User.objects.get(phone=identifier)
     except User.DoesNotExist:
         return Response({
             "success": False,
@@ -139,13 +115,8 @@ def check_phone(request):
     phone = request.data.get('phone')
     if not phone:
         return Response({"available": False}, status=status.HTTP_400_BAD_REQUEST)
-    normalized_phone = _normalize_phone(phone.strip())
-    # Check if any existing phone number, when normalized, matches this one
-    existing_users = User.objects.exclude(phone__isnull=True).exclude(phone='')
-    for user in existing_users:
-        if _normalize_phone(user.phone) == normalized_phone:
-            return Response({"available": False})
-    return Response({"available": True})
+    available = not User.objects.filter(phone=phone.strip()).exists()
+    return Response({"available": available})
 
 
 @api_view(['GET'])

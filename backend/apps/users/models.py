@@ -3,20 +3,6 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 
 
 class UserManager(BaseUserManager):
-    def _normalize_phone(self, phone):
-        """Normalize phone number by removing country codes, leading zeros, and non-digits."""
-        if phone:
-            # Remove country codes and non-digit characters
-            import re
-            # Remove +92, +1, etc. and any non-digit characters except the core number
-            phone = re.sub(r'^(\+92|92|\+1|1)?', '', phone)
-            # Remove any remaining non-digit characters
-            phone = re.sub(r'\D', '', phone)
-            # Remove leading zeros
-            phone = phone.lstrip('0')
-            return phone
-        return phone
-
     def create_user(self, email=None, phone=None, password=None, name=None, **extra_fields):
         if not email and not phone:
             raise ValueError('Either Email or Phone must be set')
@@ -24,7 +10,6 @@ class UserManager(BaseUserManager):
             email = self.normalize_email(email)
             username = email
         elif phone:
-            phone = self._normalize_phone(phone)
             username = phone
         else:
             raise ValueError('Invalid user creation parameters')

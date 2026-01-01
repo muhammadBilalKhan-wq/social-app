@@ -2,7 +2,7 @@ package com.socialnetwork.checking_sn.feature_auth.data.repository
 
 import android.util.Log
 import com.socialnetwork.checking_sn.core.data.dto.response.BasicApiResponse
-import com.socialnetwork.checking_sn.core.data.manager.SecureTokenManager
+import com.socialnetwork.checking_sn.core.data.manager.AuthManager
 import com.socialnetwork.checking_sn.core.util.Resource
 import com.socialnetwork.checking_sn.core.util.UiText
 import com.socialnetwork.checking_sn.feature_auth.data.remote.AuthApi
@@ -10,12 +10,11 @@ import com.socialnetwork.checking_sn.feature_auth.data.remote.dto.AuthResponse
 import com.socialnetwork.checking_sn.feature_auth.data.remote.dto.CreateAccountRequest
 import com.socialnetwork.checking_sn.feature_auth.data.remote.dto.LoginRegisterResponse
 import com.socialnetwork.checking_sn.feature_auth.data.remote.dto.LoginRequest
-import com.socialnetwork.checking_sn.feature_auth.data.remote.dto.RefreshTokenRequest
 import com.socialnetwork.checking_sn.feature_auth.domain.models.AuthResult
 import com.socialnetwork.checking_sn.feature_auth.domain.repository.AuthRepository
 
 class AuthRepositoryImpl(
-    private val authManager: SecureTokenManager,
+    private val authManager: AuthManager,
     private val authApi: AuthApi
 ) : AuthRepository {
 
@@ -32,12 +31,13 @@ class AuthRepositoryImpl(
             val apiResponse = authApi.login(loginRequest)
             val response = apiResponse.body()
             if (response != null && response.success && apiResponse.isSuccessful) {
-                // Store tokens securely
-                authManager.saveAuthData(
-                    accessToken = response.access ?: "",
-                    refreshToken = response.refresh ?: "",
+                // Now using real JWT tokens from backend
+                val authResponse = com.socialnetwork.checking_sn.feature_auth.data.remote.dto.AuthResponse(
+                    access = response.access ?: "",
+                    refresh = response.refresh ?: "",
                     userId = response.user_id.toString()
                 )
+                authManager.saveAuthData(authResponse)
                 AuthResult(result = Resource.Success(Unit))
             } else if (response != null && !response.success) {
                 val error = response.error ?: "Login failed"
@@ -111,20 +111,21 @@ class AuthRepositoryImpl(
             val apiResponse = authApi.register(CreateAccountRequest(email?.trim(), phone?.trim(), name.trim(), password))
             val response = apiResponse.body()
             if (response != null && response.success && apiResponse.isSuccessful) {
-                // Store tokens securely
-                authManager.saveAuthData(
-                    accessToken = response.access ?: "",
-                    refreshToken = response.refresh ?: "",
+                // Now using real JWT tokens from backend
+                val authResponse = com.socialnetwork.checking_sn.feature_auth.data.remote.dto.AuthResponse(
+                    access = response.access ?: "",
+                    refresh = response.refresh ?: "",
                     userId = response.user_id.toString()
                 )
+                authManager.saveAuthData(authResponse)
                 AuthResult(result = Resource.Success(Unit))
             } else if (response != null && !response.success) {
                 val error = response.error ?: "Registration failed"
-                when {
-                    error.startsWith("Password must") -> AuthResult(passwordError = UiText.DynamicString(error))
-                    error == "Invalid email format" || error == "Account already exists" || error == "Account with this email already exists" -> AuthResult(emailError = UiText.DynamicString(error))
-                    error == "Account with this phone number already exists" -> AuthResult(phoneNumberError = UiText.DynamicString(error))
-                    error == "Name is required" -> AuthResult(nameError = UiText.DynamicString(error))
+                when (error) {
+                    "Invalid email format", "Account already exists", "Account with this email already exists" -> AuthResult(emailError = UiText.DynamicString(error))
+                    "Account with this phone number already exists" -> AuthResult(phoneNumberError = UiText.DynamicString(error))
+                    "Password too short" -> AuthResult(passwordError = UiText.DynamicString(error))
+                    "Name is required" -> AuthResult(nameError = UiText.DynamicString(error))
                     else -> AuthResult(emailError = UiText.DynamicString(error))
                 }
             } else {
@@ -167,59 +168,6 @@ class AuthRepositoryImpl(
         } catch (e: Exception) {
             Log.e("AuthRepository", "Check phone error", e)
             false
-        }
-    }
-
-    override suspend fun refreshToken(): AuthResult {
-        return try {
-            // Get the refresh token
-            val refreshToken = authManager.getRefreshToken()
-            if (refreshToken.isNullOrEmpty()) {
-                Log.w("AuthRepository", "No refresh token available for refresh")
-                return AuthResult(result = Resource.Error(UiText.DynamicString("No refresh token available")))
-            }
-
-            val apiResponse = authApi.refreshToken(RefreshTokenRequest(refreshToken))
-            val response = apiResponse.body()
-            if (response != null && apiResponse.isSuccessful) {
-                // Save new tokens (refresh token should be updated)
-                authManager.saveAuthData(
-                    accessToken = response.access ?: "",
-                    refreshToken = response.refresh ?: refreshToken, // Use new refresh token or keep existing
-                    userId = authManager.getUserId() ?: ""
-                )
-                AuthResult(result = Resource.Success(Unit))
-        } else {
-            Log.w("AuthRepository", "Token refresh failed with HTTP ${apiResponse.code()}")
-            AuthResult(result = Resource.Error(UiText.DynamicString("Session expired. Please log in again.")))
-        }
-        } catch (e: Exception) {
-            Log.e("AuthRepository", "Refresh token error", e)
-            AuthResult(result = Resource.Error(UiText.DynamicString("Network error: ${e.message}")))
-        }
-    }
-
-    override suspend fun logout(): AuthResult {
-        return try {
-            // Get the refresh token for blacklisting
-            val refreshToken = authManager.getRefreshToken()
-            if (refreshToken != null) {
-                // Call backend to blacklist the refresh token
-                val apiResponse = authApi.logout(RefreshTokenRequest(refreshToken))
-                if (!apiResponse.isSuccessful) {
-                    Log.w("AuthRepository", "Backend logout failed: ${apiResponse.code()}")
-                    // Continue with local logout even if backend fails
-                }
-            }
-
-            // Always clear local session regardless of backend response
-            authManager.logout()
-            AuthResult(result = Resource.Success(Unit))
-        } catch (e: Exception) {
-            Log.e("AuthRepository", "Logout error", e)
-            // Even if network fails, clear local session
-            authManager.logout()
-            AuthResult(result = Resource.Success(Unit))
         }
     }
 
