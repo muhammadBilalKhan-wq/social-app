@@ -5,7 +5,6 @@
     <!-- Debug-specific configurations -->
     <application
         android:usesCleartextTraffic="true"
-        tools:replace="android:usesCleartextTraffic"
         android:debuggable="true" />
 
 </manifest>

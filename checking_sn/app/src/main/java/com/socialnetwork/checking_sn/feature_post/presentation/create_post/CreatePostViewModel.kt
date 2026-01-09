@@ -32,6 +32,12 @@ class CreatePostViewModel @Inject constructor(
             is CreatePostEvent.EnteredContent -> {
                 _state.value = state.value.copy(content = event.value)
             }
+            is CreatePostEvent.SelectedImage -> {
+                _state.value = state.value.copy(selectedImageUri = event.imageUri)
+            }
+            is CreatePostEvent.RemoveImage -> {
+                _state.value = state.value.copy(selectedImageUri = null)
+            }
             is CreatePostEvent.Post -> {
                 post()
             }
@@ -44,7 +50,7 @@ class CreatePostViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _state.value = state.value.copy(isSubmitting = true)
-            val result = repository.createPost(state.value.content)
+            val result = repository.createPost(state.value.content, state.value.selectedImageUri)
             when (result) {
                 is com.socialnetwork.checking_sn.core.util.Resource.Success -> {
                     val newPost = result.data
@@ -54,7 +60,10 @@ class CreatePostViewModel @Inject constructor(
                     _state.value = state.value.copy(isSubmitting = false)
                 }
                 is com.socialnetwork.checking_sn.core.util.Resource.Error -> {
-                    _state.value = state.value.copy(isSubmitting = false)
+                    _state.value = state.value.copy(
+                        isSubmitting = false,
+                        error = result.uiText
+                    )
                 }
             }
         }

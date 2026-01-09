@@ -29,16 +29,28 @@ class LoginViewModel @Inject constructor(
     fun onEvent(event: LoginEvent) {
         when (event) {
             is LoginEvent.EnteredEmail -> {
-                _uiState.update { it.copy(email = event.value, emailError = null) }
+                val isValid = authUseCases.validateEmail(event.value) == null
+                _uiState.update {
+                    it.copy(
+                        email = event.value,
+                        isPasswordVisible = isValid && event.value.isNotBlank()
+                    )
+                }
             }
             is LoginEvent.EnteredPhoneNumber -> {
-                _uiState.update { it.copy(phoneNumber = event.value, phoneNumberError = null) }
+                val isValid = authUseCases.validatePhoneNumber(event.value, uiState.value.countryIsoCode) == null
+                _uiState.update {
+                    it.copy(
+                        phoneNumber = event.value,
+                        isPasswordVisible = isValid && event.value.isNotBlank()
+                    )
+                }
             }
             is LoginEvent.EnteredPassword -> {
                 _uiState.update { it.copy(password = event.value, passwordError = null) }
             }
             is LoginEvent.SelectedOption -> {
-                _uiState.update { it.copy(selectedOption = event.option, emailError = null, phoneNumberError = null) }
+                _uiState.update { it.copy(selectedOption = event.option, emailError = null, phoneNumberError = null, isPasswordVisible = false) }
             }
             is LoginEvent.SelectedCountry -> {
                 _uiState.update { it.copy(countryCode = event.code, countryIsoCode = event.isoCode) }

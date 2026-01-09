@@ -18,18 +18,18 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Limit ABIs for smaller APK size
+        // Limit ABIs for smaller APK size - only 64-bit for modern devices
         ndk {
-            abiFilters.add("armeabi-v7a")
             abiFilters.add("arm64-v8a")
-            abiFilters.add("x86")
-            abiFilters.add("x86_64")
         }
+
+        // Strip unused resources for smaller APK (applied to all build types)
+        resourceConfigurations += listOf("en", "es", "fr", "de", "it", "pt", "ru", "zh", "ja", "ko", "ar", "hi")
     }
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"http://192.168.1.32:8000/\"")
+            buildConfigField("String", "BASE_URL", "\"http://192.168.1.59:8000/\"")
             buildConfigField("String", "ENVIRONMENT", "\"DEBUG\"")
         }
         release {
@@ -41,6 +41,34 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Strip debug metadata for smaller APK
+            isDebuggable = false
+            packaging {
+                resources {
+                    excludes += "/META-INF/{AL2.0,LGPL2.1}"
+                    excludes += "DebugProbesKt.bin"
+                    excludes += "/META-INF/*.kotlin_module"
+                    excludes += "/META-INF/*.version"
+                    excludes += "/META-INF/*.properties"
+                    excludes += "kotlin/**/*.kotlin_builtins"
+                    excludes += "kotlin/**/*.kotlin_metadata"
+                }
+                jniLibs {
+                    useLegacyPackaging = false
+                }
+            }
+        }
+    }
+
+    bundle {
+        abi {
+            enableSplit = true
+        }
+        density {
+            enableSplit = true
+        }
+        language {
+            enableSplit = true
         }
     }
 
@@ -54,7 +82,7 @@ android {
     // - Prod: ./gradlew assembleProdRelease (connects to production backend)
     productFlavors {
         create("dev") {
-            buildConfigField("String", "BASE_URL", "\"http://192.168.1.32:8000/\"")
+            buildConfigField("String", "BASE_URL", "\"http://192.168.1.59:8000/\"")
             buildConfigField("String", "ENVIRONMENT", "\"DEVELOPMENT\"")
             dimension = "environment"
         }
@@ -123,7 +151,7 @@ dependencies {
     // Material Icons Core - needed for password visibility and other icons
     implementation(libs.androidx.compose.material.icons.core)
 
-    // Phone number validation
+    // Phone number validation - used in ValidatePhoneNumber use case
     implementation("com.googlecode.libphonenumber:libphonenumber:8.13.25")
 
     // Security crypto for encrypted shared preferences

@@ -186,7 +186,8 @@ fun RegisterDetailsScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 48.dp),
+                .padding(horizontal = 16.dp, vertical = 16.dp)
+                .statusBarsPadding(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {

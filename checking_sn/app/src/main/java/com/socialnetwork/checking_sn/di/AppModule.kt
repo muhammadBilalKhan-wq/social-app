@@ -25,7 +25,11 @@ object AppModule {
         secureTokenManager: SecureTokenManager
     ): TokenAuthenticator {
         // Create a basic OkHttpClient for TokenAuthenticator to use for refresh requests
-        val basicClient = OkHttpClient.Builder().build()
+        val basicClient = OkHttpClient.Builder()
+            .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .build()
         return TokenAuthenticator(basicClient, secureTokenManager)
     }
 
@@ -50,6 +54,9 @@ object AppModule {
             .authenticator(tokenAuthenticator)
             .addInterceptor(authInterceptor)  // Clean auth header handling
             .addInterceptor(loggingInterceptor)
+            .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .build()
     }
 

@@ -1,5 +1,8 @@
 package com.socialnetwork.checking_sn.feature_auth.presentation.login
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,11 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-
 
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -74,14 +74,13 @@ fun LoginScreen(
             )
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-                .padding(paddingValues)
-                .statusBarsPadding()
-                .imePadding()
-        ) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .padding(paddingValues)
+            .statusBarsPadding()
+    ) {
             // Background translucent shapes
             Box(modifier = Modifier.fillMaxSize()) {
                 // Large circle top-left
@@ -122,16 +121,11 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = Spacing.ScreenPaddingHorizontal, vertical = Spacing.ScreenPaddingVertical)
-                    .verticalScroll(scrollState),
+                    .verticalScroll(scrollState)
+                    .imePadding(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                // Normal top spacing
-                Spacer(modifier = Modifier.height(Spacing.ExtraLarge))
-
-                // Additional spacing to move contents below
-                Spacer(modifier = Modifier.height(Spacing.ExtraLarge))
-
                 // Segmented Control
                 SegmentedToggle(
                     selectedOption = uiState.selectedOption,
@@ -198,22 +192,28 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(Spacing.Medium))
 
-                // Password field
-                PasswordInputField(
-                    value = uiState.password,
-                    onValueChange = { viewModel.onEvent(LoginEvent.EnteredPassword(it)) },
-                    label = "Password",
-                    placeholder = "Enter your password",
-                    error = uiState.passwordError
-                )
+                // Password field - only visible after valid email
+                AnimatedVisibility(
+                    visible = uiState.isPasswordVisible,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    PasswordInputField(
+                        value = uiState.password,
+                        onValueChange = { viewModel.onEvent(LoginEvent.EnteredPassword(it)) },
+                        label = "Password",
+                        placeholder = "Enter your password",
+                        error = uiState.passwordError
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(Spacing.ExtraLarge))
 
-                // Log In button (in normal position after password field)
+                // Log In button - always visible
                 PrimaryButton(
                     text = "Log In",
                     onClick = { viewModel.onEvent(LoginEvent.Login) },
-                    enabled = !uiState.isLoading
+                    enabled = !uiState.isLoading && uiState.isPasswordVisible
                 )
 
                 // Forgot Password link

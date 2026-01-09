@@ -4,6 +4,7 @@ import com.socialnetwork.checking_sn.core.util.UiText
 
 data class CreatePostState(
     val content: String = "",
+    val selectedImageUri: String? = null, // Base64 encoded image for now
     val isSubmitting: Boolean = false,
     val error: UiText? = null
 )

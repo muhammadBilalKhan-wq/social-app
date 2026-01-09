@@ -31,6 +31,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.socialnetwork.checking_sn.R
+import com.socialnetwork.checking_sn.ui.theme.AppBackgroundColor
 import com.socialnetwork.checking_sn.ui.theme.Spacing
 
 // Reusable top bar icon matching bottom nav style
@@ -64,24 +65,12 @@ fun TopNavigationBar(
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
-    val statusBarColor = Color.White
 
     DisposableEffect(Unit) {
         val window = (view.context as? android.app.Activity)?.window
         window?.let {
-            val originalColor = it.statusBarColor
-            it.statusBarColor = android.graphics.Color.argb(
-                (statusBarColor.alpha * 255).toInt(),
-                (statusBarColor.red * 255).toInt(),
-                (statusBarColor.green * 255).toInt(),
-                (statusBarColor.blue * 255).toInt()
-            )
             // Make status bar icons dark for light background
             WindowCompat.getInsetsController(it, view).isAppearanceLightStatusBars = true
-
-            onDispose {
-                it.statusBarColor = originalColor
-            }
         }
         onDispose {}
     }
@@ -90,7 +79,7 @@ fun TopNavigationBar(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding(),
-        color = Color.White,
+        color = AppBackgroundColor,
         shadowElevation = 2.dp
     ) {
         Row(

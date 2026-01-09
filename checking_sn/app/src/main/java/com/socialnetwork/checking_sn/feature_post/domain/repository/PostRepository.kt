@@ -16,5 +16,5 @@ interface PostRepository {
 
     suspend fun addComment(postId: String, content: String): Resource<Unit>
 
-    suspend fun createPost(content: String): Resource<Post>
+    suspend fun createPost(content: String, imageUrl: String?): Resource<Post>
 }

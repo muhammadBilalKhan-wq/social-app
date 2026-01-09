@@ -12,5 +12,6 @@ data class LoginUiState(
     val phoneNumberError: UiText? = null,
     val password: String = "",
     val passwordError: UiText? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val isPasswordVisible: Boolean = false
 )

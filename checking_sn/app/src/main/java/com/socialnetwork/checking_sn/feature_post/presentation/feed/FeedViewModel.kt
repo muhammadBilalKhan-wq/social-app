@@ -1,14 +1,13 @@
 package com.socialnetwork.checking_sn.feature_post.presentation.feed
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.socialnetwork.checking_sn.core.domain.models.Comment
 import com.socialnetwork.checking_sn.core.domain.models.Post
 import com.socialnetwork.checking_sn.feature_post.domain.repository.PostRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
@@ -22,8 +21,8 @@ class FeedViewModel @Inject constructor(
         private const val PAGE_SIZE = 5
     }
 
-    private val _state = mutableStateOf(FeedState(isInitialLoading = true))
-    val state: State<FeedState> = _state
+    private val _state = MutableStateFlow(FeedState(isInitialLoading = true))
+    val state: StateFlow<FeedState> = _state
 
     private var currentPage = 0
 

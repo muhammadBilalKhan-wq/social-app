@@ -185,13 +185,13 @@ fun AuthScreen(
         */
 
         // Logo at top center (drawn after carousel so it's on top)
-        Text(
-            text = "Checking SN",
-            style = MaterialTheme.typography.displayMedium,
-            textAlign = TextAlign.Center,
+        Image(
+            painter = painterResource(id = R.drawable.app_logo_notext),
+            contentDescription = "App Logo",
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 65.dp)
+                .size(250.dp)
                 .graphicsLayer(
                     scaleX = logoScale.value,
                     scaleY = logoScale.value,

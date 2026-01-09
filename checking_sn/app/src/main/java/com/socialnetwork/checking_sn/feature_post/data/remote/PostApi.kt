@@ -1,32 +1,26 @@
 package com.socialnetwork.checking_sn.feature_post.data.remote
 
+import com.socialnetwork.checking_sn.core.data.dto.response.BasicApiResponse
 import com.socialnetwork.checking_sn.feature_post.data.remote.dto.PostDto
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import retrofit2.Response
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
-import retrofit2.http.Query
+import retrofit2.http.Part
 
 interface PostApi {
 
-    @GET("/api/feed")
-    suspend fun getPostsForFollows(
-        @Query("page") page: Int,
-        @Query("pageSize") pageSize: Int
-    ): List<PostDto>
+    @GET("/api/posts/")
+    suspend fun getPosts(): Response<BasicApiResponse<List<PostDto>>>
 
-    @POST("/api/post/like")
-    suspend fun likePost(@Query("postId") postId: String)
-
-    @POST("/api/post/unlike")
-    suspend fun unlikePost(@Query("postId") postId: String)
-
-    @POST("/api/post/comment")
-    suspend fun addComment(
-        @Query("postId") postId: String,
-        @Query("content") content: String
-    )
-
-    @POST("/api/post/create")
-    suspend fun createPost(@Query("content") content: String): PostDto
+    @Multipart
+    @POST("/api/posts/")
+    suspend fun createPost(
+        @Part("content") content: RequestBody,
+        @Part imageUrl: MultipartBody.Part?
+    ): Response<BasicApiResponse<PostDto>>
 
     companion object {
         const val BASE_URL = "http://10.0.2.2:8001/"

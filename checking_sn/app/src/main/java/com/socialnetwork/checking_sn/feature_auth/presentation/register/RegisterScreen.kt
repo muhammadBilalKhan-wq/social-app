@@ -58,8 +58,7 @@ fun RegisterScreen(
         topBar = {
             TopBar(
                 title = "Sign Up",
-                onBackClick = { navController.popBackStack() },
-                topPadding = Spacing.Medium
+                onBackClick = { navController.popBackStack() }
             )
         }
     ) { paddingValues ->
@@ -68,6 +67,7 @@ fun RegisterScreen(
                 .fillMaxSize()
                 .background(Color.White)
                 .padding(paddingValues)
+                .statusBarsPadding()
         ) {
             // Background shapes (matching LoginScreen)
             Box(modifier = Modifier.fillMaxSize()) {
@@ -107,13 +107,12 @@ fun RegisterScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = Spacing.ScreenPaddingHorizontal, vertical = Spacing.ScreenPaddingVertical)
+                .padding(top = Spacing.Large)
                 .verticalScroll(rememberScrollState())
                 .imePadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            Spacer(modifier = Modifier.height(Spacing.ExtraLarge))
-
             // Title
             Text(
                 text = "Enter phone or email",

@@ -1,11 +1,14 @@
 package com.socialnetwork.checking_sn.ui.theme
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,7 +48,6 @@ import com.socialnetwork.checking_sn.feature_post.presentation.feed.FeedViewMode
 import com.socialnetwork.checking_sn.feature_shorts.presentation.shorts.ShortsScreen
 import com.socialnetwork.checking_sn.feature_splash.presentation.splash.SplashScreen
 import com.socialnetwork.checking_sn.feature_search.presentation.search.SearchScreen
-import com.socialnetwork.checking_sn.feature_search.presentation.search.AppBackgroundColor
 import com.socialnetwork.checking_sn.ui.components.BottomNavigationBar
 import com.socialnetwork.checking_sn.ui.components.TopNavigationBar
 
@@ -55,7 +57,7 @@ fun Navigation(
     secureTokenManager: SecureTokenManager
 ) {
     val navController = rememberNavController()
-    val isLoggedIn by secureTokenManager.isLoggedIn.collectAsState(initial = true)
+    val isLoggedIn by secureTokenManager.isLoggedIn.collectAsState(initial = false)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -84,42 +86,34 @@ fun Navigation(
         isLoggedIn && (currentRoute in mainRoutes)
     }
 
-    // Show bottom navigation when logged in and on main screens
     val showBottomBar = remember(currentRoute, isLoggedIn) {
-        isLoggedIn && currentRoute in listOf(
-            Screen.HomeScreen.route,
-            Screen.ShortsScreen.route,
-            Screen.NotificationsScreen.route,
-            Screen.MoreScreen.route,
-            Screen.FeedScreen.route
-        )
+        isLoggedIn && (currentRoute in mainRoutes)
     }
 
-    // Determine selected tab based on current route
-    val selectedTab = remember(currentRoute) {
-        when (currentRoute) {
-            Screen.HomeScreen.route, Screen.FeedScreen.route -> "home"
-            Screen.ShortsScreen.route -> "shorts"
-            Screen.NotificationsScreen.route -> "notifications"
-            Screen.MoreScreen.route -> "more"
-            else -> null
-        }
+    val selectedTab = when (currentRoute) {
+        Screen.HomeScreen.route, Screen.FeedScreen.route -> "home"
+        Screen.ShortsScreen.route -> "shorts"
+        Screen.NotificationsScreen.route -> "notifications"
+        Screen.MoreScreen.route -> "more"
+        else -> null
     }
 
-    Scaffold(
-        containerColor = AppBackgroundColor
-    ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            Box(modifier = Modifier.padding(paddingValues)) {
-                NavHost(
-                    navController = navController,
-                    startDestination = FEED_GRAPH_ROUTE
-                ) {
+
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            containerColor = androidx.compose.ui.graphics.Color.Transparent
+        ) { paddingValues ->
+            NavHost(
+                navController = navController,
+                startDestination = Screen.SplashScreen.route,
+                modifier = Modifier.padding(paddingValues)
+            ) {
                 composable(Screen.AuthGate.route) {
                     AuthGateScreen(navController = navController)
                 }
                 composable(Screen.SplashScreen.route) {
-                    SplashScreen(navController = navController)
+                    SplashScreen(navController = navController, secureTokenManager = secureTokenManager)
                 }
                 navigation(
                     route = AUTH_GRAPH_ROUTE,
@@ -244,69 +238,39 @@ fun Navigation(
                     )
                 }
             }
-            }
+        }
 
-            // Floating top navigation overlay
-            if (showTopBar) {
-                TopNavigationBar(
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    onSearchClick = {
-                        navController.navigate(Screen.SearchScreen.route)
-                    },
-                    onProfileClick = {
-                        navController.navigate(Screen.ProfileScreen.route)
-                    }
-                )
-            }
+        // Floating top navigation overlay
+        if (showTopBar) {
+            TopNavigationBar(
+                modifier = Modifier.align(Alignment.TopCenter),
+                onSearchClick = {
+                    navController.navigate(Screen.SearchScreen.route)
+                },
+                onProfileClick = {
+                    navController.navigate(Screen.ProfileScreen.route)
+                }
+            )
+        }
 
-            // Floating bottom navigation overlay
-            if (showBottomBar) {
-                BottomNavigationBar(
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                    selectedTab = selectedTab,
-                    onHomeClick = {
-                        navController.navigate(Screen.HomeScreen.route) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onShortsClick = {
-                        navController.navigate(Screen.ShortsScreen.route) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onNotificationsClick = {
-                        navController.navigate(Screen.NotificationsScreen.route) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onMoreClick = {
-                        navController.navigate(Screen.MoreScreen.route) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    onAddClick = {
-                        navController.navigate(Screen.CreateContentScreen.route) {
-                            launchSingleTop = true
-                        }
+        // Floating bottom navigation overlay
+        if (showBottomBar) {
+            BottomNavigationBar(
+                selectedTab = selectedTab,
+                onHomeClick = { navController.navigate(Screen.HomeScreen.route) },
+                onShortsClick = { navController.navigate(Screen.ShortsScreen.route) },
+                onNotificationsClick = { navController.navigate(Screen.NotificationsScreen.route) },
+                onMoreClick = { navController.navigate(Screen.MoreScreen.route) },
+                onAddClick = { 
+                    // Navigate to Feed screen first, then to CreatePostScreen
+                    navController.navigate(Screen.FeedScreen.route) {
+                        popUpTo(Screen.FeedScreen.route) { inclusive = false }
                     }
-                )
-            }
+                    // Then navigate to CreatePostScreen
+                    navController.navigate(Screen.CreatePostScreen.route)
+                },
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp)
+            )
         }
     }
 }
